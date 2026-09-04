@@ -67,13 +67,13 @@ fun MainApp(viewModel: MainViewModel) {
         composable("settings") { SettingsScreen(viewModel, navController) }
         composable("select_trigger") { com.example.ui.screens.TriggerSelectionScreen(viewModel, navController) }
                 composable("select_action/{trigger}") { backStackEntry ->
-            val triggerString = backStackEntry.arguments?.getString("trigger") ?: TriggerMethod.FINGERPRINT.name
-            val trigger = try { TriggerMethod.valueOf(triggerString) } catch (e: Exception) { TriggerMethod.FINGERPRINT }
+            val triggerString = backStackEntry.arguments?.getString("trigger") ?: TriggerMethod.SHAKE.name
+            val trigger = try { TriggerMethod.valueOf(triggerString) } catch (e: Exception) { TriggerMethod.SHAKE }
             ActionSelectionScreen(viewModel, navController, trigger)
         }
         composable("select_app/{trigger}") { backStackEntry ->
-            val triggerString = backStackEntry.arguments?.getString("trigger") ?: TriggerMethod.FINGERPRINT.name
-            val trigger = try { TriggerMethod.valueOf(triggerString) } catch (e: Exception) { TriggerMethod.FINGERPRINT }
+            val triggerString = backStackEntry.arguments?.getString("trigger") ?: TriggerMethod.SHAKE.name
+            val trigger = try { TriggerMethod.valueOf(triggerString) } catch (e: Exception) { TriggerMethod.SHAKE }
             com.example.ui.screens.AppSelectionScreen(viewModel, navController, trigger)
         }
         composable("compatibility") { CompatibilityScreen(viewModel, navController) }

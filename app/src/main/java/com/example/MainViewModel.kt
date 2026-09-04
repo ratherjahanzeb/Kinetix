@@ -23,19 +23,25 @@ class MainViewModel(
         val selectedAction: StateFlow<Action> = settingsRepo.selectedAction
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Action.NONE)
         
-    val fingerprintAction: StateFlow<Action> = settingsRepo.fingerprintAction
+    val shakeAction: StateFlow<Action> = settingsRepo.shakeAction
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Action.HOME)
         
-    val powerButtonAction: StateFlow<Action> = settingsRepo.powerButtonAction
+    val proximityWaveAction: StateFlow<Action> = settingsRepo.proximityWaveAction
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Action.FLASHLIGHT)
+        
+    val flipPhoneAction: StateFlow<Action> = settingsRepo.flipPhoneAction
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Action.HOME)
         
     val backPanelAction: StateFlow<Action> = settingsRepo.backPanelAction
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Action.SCREENSHOT)
         
-    val fingerprintAppPackage: StateFlow<String?> = settingsRepo.fingerprintAppPackage
+    val shakeAppPackage: StateFlow<String?> = settingsRepo.shakeAppPackage
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
         
-    val powerButtonAppPackage: StateFlow<String?> = settingsRepo.powerButtonAppPackage
+    val proximityWaveAppPackage: StateFlow<String?> = settingsRepo.proximityWaveAppPackage
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        
+    val flipPhoneAppPackage: StateFlow<String?> = settingsRepo.flipPhoneAppPackage
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
         
     val backPanelAppPackage: StateFlow<String?> = settingsRepo.backPanelAppPackage
@@ -47,12 +53,17 @@ class MainViewModel(
     val onboardingCompleted: StateFlow<Boolean?> = settingsRepo.onboardingCompleted
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val fingerprintEnabled: StateFlow<Boolean> = settingsRepo.fingerprintEnabled
+    val shakeEnabled: StateFlow<Boolean> = settingsRepo.shakeEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-    val powerButtonEnabled: StateFlow<Boolean> = settingsRepo.powerButtonEnabled
+    val proximityWaveEnabled: StateFlow<Boolean> = settingsRepo.proximityWaveEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val flipPhoneEnabled: StateFlow<Boolean> = settingsRepo.flipPhoneEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val backPanelEnabled: StateFlow<Boolean> = settingsRepo.backPanelEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val backPanelSensitivity: StateFlow<Int> = settingsRepo.backPanelSensitivity
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
 
     val vibrateEnabled: StateFlow<Boolean> = settingsRepo.vibrateEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
@@ -67,7 +78,7 @@ class MainViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val activeTrigger: StateFlow<TriggerMethod> = settingsRepo.activeTrigger
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TriggerMethod.FINGERPRINT)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TriggerMethod.SHAKE)
 
     var compatibilityStatus: CompatibilityStatus = compatibilityChecker.checkCompatibility()
         private set
@@ -84,24 +95,32 @@ class MainViewModel(
         viewModelScope.launch { settingsRepo.setSelectedAction(action) }
     }
     
-    fun setFingerprintAction(action: Action) {
-        viewModelScope.launch { settingsRepo.setFingerprintAction(action) }
+    fun setShakeAction(action: Action) {
+        viewModelScope.launch { settingsRepo.setShakeAction(action) }
     }
     
-    fun setPowerButtonAction(action: Action) {
-        viewModelScope.launch { settingsRepo.setPowerButtonAction(action) }
+    fun setProximityWaveAction(action: Action) {
+        viewModelScope.launch { settingsRepo.setProximityWaveAction(action) }
+    }
+    
+    fun setFlipPhoneAction(action: Action) {
+        viewModelScope.launch { settingsRepo.setFlipPhoneAction(action) }
     }
     
     fun setBackPanelAction(action: Action) {
         viewModelScope.launch { settingsRepo.setBackPanelAction(action) }
     }
     
-    fun setFingerprintAppPackage(pkg: String) {
-        viewModelScope.launch { settingsRepo.setFingerprintAppPackage(pkg) }
+    fun setShakeAppPackage(pkg: String) {
+        viewModelScope.launch { settingsRepo.setShakeAppPackage(pkg) }
     }
     
-    fun setPowerButtonAppPackage(pkg: String) {
-        viewModelScope.launch { settingsRepo.setPowerButtonAppPackage(pkg) }
+    fun setProximityWaveAppPackage(pkg: String) {
+        viewModelScope.launch { settingsRepo.setProximityWaveAppPackage(pkg) }
+    }
+    
+    fun setFlipPhoneAppPackage(pkg: String) {
+        viewModelScope.launch { settingsRepo.setFlipPhoneAppPackage(pkg) }
     }
     
     fun setBackPanelAppPackage(pkg: String) {
@@ -116,12 +135,17 @@ class MainViewModel(
         viewModelScope.launch { settingsRepo.setOnboardingCompleted(true) }
     }
 
-    fun setFingerprintEnabled(enabled: Boolean) { viewModelScope.launch { settingsRepo.setFingerprintEnabled(enabled) } }
-    fun setPowerButtonEnabled(enabled: Boolean) { viewModelScope.launch { settingsRepo.setPowerButtonEnabled(enabled) } }
+    fun setShakeEnabled(enabled: Boolean) { viewModelScope.launch { settingsRepo.setShakeEnabled(enabled) } }
+    fun setProximityWaveEnabled(enabled: Boolean) { viewModelScope.launch { settingsRepo.setProximityWaveEnabled(enabled) } }
+    fun setFlipPhoneEnabled(enabled: Boolean) { viewModelScope.launch { settingsRepo.setFlipPhoneEnabled(enabled) } }
     fun setBackPanelEnabled(enabled: Boolean) { viewModelScope.launch { settingsRepo.setBackPanelEnabled(enabled) } }
     fun setVibrateEnabled(enabled: Boolean) { viewModelScope.launch { settingsRepo.setVibrateEnabled(enabled) } }
     fun setMaterialYouEnabled(enabled: Boolean) { viewModelScope.launch { settingsRepo.setMaterialYouEnabled(enabled) } }
     fun setAccentTheme(theme: String) { viewModelScope.launch { settingsRepo.setAccentTheme(theme) } }
+
+    fun setBackPanelSensitivity(sensitivity: Int) {
+        viewModelScope.launch { settingsRepo.setBackPanelSensitivity(sensitivity) }
+    }
 
     fun setActiveTrigger(trigger: TriggerMethod) {
         viewModelScope.launch { settingsRepo.setActiveTrigger(trigger) }

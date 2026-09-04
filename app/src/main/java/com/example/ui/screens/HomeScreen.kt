@@ -98,12 +98,14 @@ fun GlowingIconBox(
 fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
     val isEnabled by viewModel.isEnabled.collectAsStateWithLifecycle()
     val timeoutMs by viewModel.timeoutMs.collectAsStateWithLifecycle()
+    val backPanelSensitivity by viewModel.backPanelSensitivity.collectAsStateWithLifecycle()
     val triggerLogs by viewModel.triggerLogs.collectAsStateWithLifecycle()
     
-    val fp by viewModel.fingerprintEnabled.collectAsStateWithLifecycle()
-    val pb by viewModel.powerButtonEnabled.collectAsStateWithLifecycle()
+    val sh by viewModel.shakeEnabled.collectAsStateWithLifecycle()
+    val prox by viewModel.proximityWaveEnabled.collectAsStateWithLifecycle()
+    val flip by viewModel.flipPhoneEnabled.collectAsStateWithLifecycle()
     val bp by viewModel.backPanelEnabled.collectAsStateWithLifecycle()
-    val activeCount = listOf(fp, pb, bp).count { it }
+    val activeCount = listOf(sh, prox, flip, bp).count { it }
     
     val context = LocalContext.current
     var hasAllPermissions by remember { mutableStateOf(false) }
@@ -270,15 +272,20 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            if (fp || pb || bp) {
-                                if (fp) {
+                            if (sh || prox || flip || bp) {
+                                if (sh) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        GlowingIconBox(icon = Icons.Rounded.Fingerprint, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
+                                        GlowingIconBox(icon = Icons.Rounded.Vibration, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
                                     }
                                 }
-                                if (pb) {
+                                if (prox) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        GlowingIconBox(icon = Icons.Rounded.PowerSettingsNew, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
+                                        GlowingIconBox(icon = Icons.Rounded.PanTool, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
+                                    }
+                                }
+                                if (flip) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        GlowingIconBox(icon = Icons.Rounded.ScreenRotation, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
                                     }
                                 }
                                 if (bp) {
@@ -296,45 +303,65 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
             }
 
 
-            // Timeout Slider
+            // Tap Style Selector
             item {
                 AuroraCard {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        GlowingIconBox(icon = Icons.Rounded.Timer, isActive = false)
+                        GlowingIconBox(icon = Icons.Rounded.TouchApp, isActive = false)
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Tap Timeout",
+                                text = "Back Tap Style",
                                 style = MaterialTheme.typography.titleLarge,
                                 color = TextPrimary
                             )
                             Text(
-                                text = "${timeoutMs} ms",
+                                text = when(backPanelSensitivity) {
+                                    0 -> "Hard Tap"
+                                    2 -> "Smooth Tap"
+                                    else -> "Balanced Tap"
+                                },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = TextSecondary
                             )
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    Slider(
-                        value = timeoutMs.toFloat(),
-                        onValueChange = { viewModel.setTimeoutMs(it.toInt()) },
-                        valueRange = 200f..500f,
-                        steps = 2,
-                        colors = SliderDefaults.colors(
-                            thumbColor = AuroraSecondary,
-                            activeTrackColor = AuroraSecondary,
-                            inactiveTrackColor = SurfaceVariantDark,
-                            activeTickColor = AuroraSecondary,
-                            inactiveTickColor = SurfaceVariantDark
-                        )
-                    )
+                    
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Fast (200ms)", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
-                        Text("Slow (500ms)", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+                        FilterChip(
+                            selected = backPanelSensitivity == 0,
+                            onClick = { viewModel.setBackPanelSensitivity(0) },
+                            label = { Text("Hard") },
+                            modifier = Modifier.weight(1f),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                                selectedLabelColor = AuroraSecondary
+                            )
+                        )
+                        FilterChip(
+                            selected = backPanelSensitivity == 1,
+                            onClick = { viewModel.setBackPanelSensitivity(1) },
+                            label = { Text("Balance") },
+                            modifier = Modifier.weight(1f),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                                selectedLabelColor = AuroraSecondary
+                            )
+                        )
+                        FilterChip(
+                            selected = backPanelSensitivity == 2,
+                            onClick = { viewModel.setBackPanelSensitivity(2) },
+                            label = { Text("Smooth") },
+                            modifier = Modifier.weight(1f),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                                selectedLabelColor = AuroraSecondary
+                            )
+                        )
                     }
                 }
             }
@@ -388,8 +415,9 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                             triggerLogs.forEach { log ->
                                 val dateStr = android.text.format.DateFormat.format("hh:mm:ss a, MMM dd", java.util.Date(log.timestamp)).toString()
                                 val triggerDisplayName = when (log.sourceTrigger) {
-                                    "FINGERPRINT" -> "Fingerprint Sensor"
-                                    "POWER_BUTTON" -> "Power Button"
+                                    "SHAKE" -> "Shake Phone"
+                                    "PROXIMITY_WAVE" -> "Proximity Wave"
+                                    "FLIP_PHONE" -> "Flip Phone"
                                     "BACK_PANEL" -> "Back Tap"
                                     else -> log.sourceTrigger
                                 }
@@ -413,8 +441,9 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                                         ) {
                                             Icon(
                                                 imageVector = when (log.sourceTrigger) {
-                                                    "FINGERPRINT" -> Icons.Rounded.Fingerprint
-                                                    "POWER_BUTTON" -> Icons.Rounded.PowerSettingsNew
+                                                    "SHAKE" -> Icons.Rounded.Vibration
+                                                    "PROXIMITY_WAVE" -> Icons.Rounded.PanTool
+                                                    "FLIP_PHONE" -> Icons.Rounded.ScreenRotation
                                                     "BACK_PANEL" -> Icons.Rounded.Smartphone
                                                     else -> Icons.Rounded.TouchApp
                                                 },

@@ -12,12 +12,13 @@ data class CompatibilityStatus(
     val hasFingerprintInputDevice: Boolean,
     val inputDeviceNames: List<String>,
     val isAccessibilityEnabled: Boolean,
-    val hasAccelerometer: Boolean
+    val hasAccelerometer: Boolean,
+    val hasProximitySensor: Boolean
 ) {
     val level: StatusLevel
         get() = when {
-            hasHardware && hasFingerprintInputDevice -> StatusLevel.SUPPORTED
-            hasHardware -> StatusLevel.PARTIALLY_SUPPORTED
+            hasAccelerometer && hasProximitySensor -> StatusLevel.SUPPORTED
+            hasAccelerometer || hasProximitySensor -> StatusLevel.PARTIALLY_SUPPORTED
             else -> StatusLevel.UNSUPPORTED
         }
 
@@ -54,13 +55,15 @@ class CompatibilityChecker(private val context: Context) {
         
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val hasAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null
+        val hasProximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY) != null
 
         return CompatibilityStatus(
             hasHardware = hasHardware,
             hasFingerprintInputDevice = hasFingerprintInputDevice,
             inputDeviceNames = inputDeviceNames,
             isAccessibilityEnabled = isAccessibilityEnabled,
-            hasAccelerometer = hasAccelerometer
+            hasAccelerometer = hasAccelerometer,
+            hasProximitySensor = hasProximitySensor
         )
     }
 }

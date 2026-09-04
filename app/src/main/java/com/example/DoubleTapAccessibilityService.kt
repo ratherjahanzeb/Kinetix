@@ -22,6 +22,9 @@ class DoubleTapAccessibilityService : AccessibilityService() {
     private lateinit var settingsRepo: SettingsRepository
     private var isFlashlightOn = false
     private var backTapDetector: BackTapDetector? = null
+    private var shakeDetector: ShakeDetector? = null
+    private var proximityDetector: ProximityDetector? = null
+    private var flipDetector: FlipDetector? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -35,13 +38,58 @@ class DoubleTapAccessibilityService : AccessibilityService() {
         }, null)
 
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        shakeDetector = ShakeDetector(sensorManager) {
+            handlePotentialTap(TriggerMethod.SHAKE)
+        }
         backTapDetector = BackTapDetector(sensorManager) {
             handlePotentialTap(TriggerMethod.BACK_PANEL)
+        }
+        proximityDetector = ProximityDetector(sensorManager) {
+            handlePotentialTap(TriggerMethod.PROXIMITY_WAVE)
+        }
+        flipDetector = FlipDetector(sensorManager) {
+            handlePotentialTap(TriggerMethod.FLIP_PHONE)
         }
 
         scope.launch {
             settingsRepo.isEnabled.collect { isEnabled ->
                 updateForegroundState(isEnabled)
+            }
+        }
+
+        scope.launch {
+            combine(settingsRepo.isEnabled, settingsRepo.shakeEnabled) { isEnabled, shake ->
+                Pair(isEnabled, shake)
+            }.collect { (isEnabled, shake) ->
+                if (isEnabled && shake) {
+                    shakeDetector?.start()
+                } else {
+                    shakeDetector?.stop()
+                }
+            }
+        }
+
+        scope.launch {
+            combine(settingsRepo.isEnabled, settingsRepo.proximityWaveEnabled) { isEnabled, proximity ->
+                Pair(isEnabled, proximity)
+            }.collect { (isEnabled, proximity) ->
+                if (isEnabled && proximity) {
+                    proximityDetector?.start()
+                } else {
+                    proximityDetector?.stop()
+                }
+            }
+        }
+
+        scope.launch {
+            combine(settingsRepo.isEnabled, settingsRepo.flipPhoneEnabled) { isEnabled, flip ->
+                Pair(isEnabled, flip)
+            }.collect { (isEnabled, flip) ->
+                if (isEnabled && flip) {
+                    flipDetector?.start()
+                } else {
+                    flipDetector?.stop()
+                }
             }
         }
 
@@ -57,16 +105,9 @@ class DoubleTapAccessibilityService : AccessibilityService() {
             }
         }
 
-        // Setup FingerprintGestureController callback just in case the device supports swipe gestures natively.
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val fpController = fingerprintGestureController
-            if (fpController.isGestureDetectionAvailable) {
-                fpController.registerFingerprintGestureCallback(object : FingerprintGestureController.FingerprintGestureCallback() {
-                    override fun onGestureDetectionAvailabilityChanged(available: Boolean) {}
-                    override fun onGestureDetected(gesture: Int) {
-                        handlePotentialTap(TriggerMethod.FINGERPRINT)
-                    }
-                }, null)
+        scope.launch {
+            settingsRepo.backPanelSensitivity.collect { sensitivity ->
+                backTapDetector?.sensitivityLevel = sensitivity
             }
         }
     }
@@ -80,36 +121,6 @@ class DoubleTapAccessibilityService : AccessibilityService() {
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        if (event.action == KeyEvent.ACTION_DOWN) {
-            val keyCode = event.keyCode
-            
-            // Check for Power Button
-            if (keyCode == KeyEvent.KEYCODE_POWER) {
-                handlePotentialTap(TriggerMethod.POWER_BUTTON)
-                return false // Don't consume power button to avoid breaking screen on/off
-            }
-
-            // Check for Fingerprint
-            val device = event.device
-            var isFingerprint = false
-            if (device != null) {
-                val name = device.name.lowercase()
-                if (name.contains("fingerprint") || name.contains("goodix") || name.contains("fpc") || name.contains("uinput-fpc")) {
-                    isFingerprint = true
-                }
-            }
-            if (keyCode == KeyEvent.KEYCODE_SYSTEM_NAVIGATION_DOWN ||
-                keyCode == KeyEvent.KEYCODE_SYSTEM_NAVIGATION_UP ||
-                keyCode == KeyEvent.KEYCODE_SYSTEM_NAVIGATION_LEFT ||
-                keyCode == KeyEvent.KEYCODE_SYSTEM_NAVIGATION_RIGHT) {
-                isFingerprint = true
-            }
-
-            if (isFingerprint) {
-                handlePotentialTap(TriggerMethod.FINGERPRINT)
-                return true // Consume event
-            }
-        }
         return super.onKeyEvent(event)
     }
 
@@ -119,8 +130,9 @@ class DoubleTapAccessibilityService : AccessibilityService() {
             if (!isEnabled) return@launch
             
             val isSourceEnabled = when (sourceTrigger) {
-                TriggerMethod.FINGERPRINT -> settingsRepo.fingerprintEnabled.first()
-                TriggerMethod.POWER_BUTTON -> settingsRepo.powerButtonEnabled.first()
+                TriggerMethod.SHAKE -> settingsRepo.shakeEnabled.first()
+                TriggerMethod.PROXIMITY_WAVE -> settingsRepo.proximityWaveEnabled.first()
+                TriggerMethod.FLIP_PHONE -> settingsRepo.flipPhoneEnabled.first()
                 TriggerMethod.BACK_PANEL -> settingsRepo.backPanelEnabled.first()
             }
             if (!isSourceEnabled) return@launch
@@ -136,8 +148,9 @@ class DoubleTapAccessibilityService : AccessibilityService() {
                     vibrate()
                 }
                 val actionToExecute = when (sourceTrigger) {
-                    TriggerMethod.FINGERPRINT -> settingsRepo.fingerprintAction.first()
-                    TriggerMethod.POWER_BUTTON -> settingsRepo.powerButtonAction.first()
+                    TriggerMethod.SHAKE -> settingsRepo.shakeAction.first()
+                    TriggerMethod.PROXIMITY_WAVE -> settingsRepo.proximityWaveAction.first()
+                    TriggerMethod.FLIP_PHONE -> settingsRepo.flipPhoneAction.first()
                     TriggerMethod.BACK_PANEL -> settingsRepo.backPanelAction.first()
                 }
                 settingsRepo.addTriggerLog(
@@ -178,8 +191,9 @@ class DoubleTapAccessibilityService : AccessibilityService() {
 
     private suspend fun openApp(sourceTrigger: TriggerMethod) {
         val packageName = when (sourceTrigger) {
-            TriggerMethod.FINGERPRINT -> settingsRepo.fingerprintAppPackage.first()
-            TriggerMethod.POWER_BUTTON -> settingsRepo.powerButtonAppPackage.first()
+            TriggerMethod.SHAKE -> settingsRepo.shakeAppPackage.first()
+            TriggerMethod.PROXIMITY_WAVE -> settingsRepo.proximityWaveAppPackage.first()
+            TriggerMethod.FLIP_PHONE -> settingsRepo.flipPhoneAppPackage.first()
             TriggerMethod.BACK_PANEL -> settingsRepo.backPanelAppPackage.first()
         }
         if (!packageName.isNullOrEmpty()) {

@@ -20,24 +20,24 @@ class SettingsRepository(private val context: Context) {
         val TIMEOUT_MS = intPreferencesKey("timeout_ms")
                 val SELECTED_ACTION = stringPreferencesKey("selected_action")
         
-        val FINGERPRINT_ACTION = stringPreferencesKey("fingerprint_action")
-        val POWER_BUTTON_ACTION = stringPreferencesKey("power_button_action")
+        val SHAKE_ACTION = stringPreferencesKey("shake_action")
+        val PROXIMITY_WAVE_ACTION = stringPreferencesKey("proximity_wave_action")
+        val FLIP_PHONE_ACTION = stringPreferencesKey("flip_phone_action")
         val BACK_PANEL_ACTION = stringPreferencesKey("back_panel_action")
         
-        val FINGERPRINT_APP_PACKAGE = stringPreferencesKey("fingerprint_app_package")
-        val POWER_BUTTON_APP_PACKAGE = stringPreferencesKey("power_button_app_package")
+        val SHAKE_APP_PACKAGE = stringPreferencesKey("shake_app_package")
+        val PROXIMITY_WAVE_APP_PACKAGE = stringPreferencesKey("proximity_wave_app_package")
+        val FLIP_PHONE_APP_PACKAGE = stringPreferencesKey("flip_phone_app_package")
         val BACK_PANEL_APP_PACKAGE = stringPreferencesKey("back_panel_app_package")
         
         val ACTIVE_TRIGGER = stringPreferencesKey("active_trigger")
-        val FINGERPRINT_ENABLED = booleanPreferencesKey("fingerprint_enabled")
-        val POWER_BUTTON_ENABLED = booleanPreferencesKey("power_button_enabled")
+        val SHAKE_ENABLED = booleanPreferencesKey("shake_enabled")
+        val PROXIMITY_WAVE_ENABLED = booleanPreferencesKey("proximity_wave_enabled")
+        val FLIP_PHONE_ENABLED = booleanPreferencesKey("flip_phone_enabled")
         val BACK_PANEL_ENABLED = booleanPreferencesKey("back_panel_enabled")
         val START_ON_BOOT = booleanPreferencesKey("start_on_boot")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val AUTOSTART_CHECKED = booleanPreferencesKey("autostart_checked")
-        
-        // Power Button Settings
-        val POWER_BUTTON_TIMEOUT_MS = intPreferencesKey("power_button_timeout_ms")
         
         // Back Panel Settings
         val BACK_PANEL_SENSITIVITY = intPreferencesKey("back_panel_sensitivity") // 0=Low, 1=Medium, 2=High
@@ -64,13 +64,18 @@ class SettingsRepository(private val context: Context) {
         try { Action.valueOf(actionName) } catch (e: Exception) { Action.NONE }
     }
     
-    val fingerprintAction: Flow<Action> = context.dataStore.data.map { preferences ->
-        val actionName = preferences[FINGERPRINT_ACTION] ?: Action.NONE.name
+    val shakeAction: Flow<Action> = context.dataStore.data.map { preferences ->
+        val actionName = preferences[SHAKE_ACTION] ?: Action.NONE.name
         try { Action.valueOf(actionName) } catch (e: Exception) { Action.NONE }
     }
     
-    val powerButtonAction: Flow<Action> = context.dataStore.data.map { preferences ->
-        val actionName = preferences[POWER_BUTTON_ACTION] ?: Action.NONE.name
+    val proximityWaveAction: Flow<Action> = context.dataStore.data.map { preferences ->
+        val actionName = preferences[PROXIMITY_WAVE_ACTION] ?: Action.NONE.name
+        try { Action.valueOf(actionName) } catch (e: Exception) { Action.NONE }
+    }
+    
+    val flipPhoneAction: Flow<Action> = context.dataStore.data.map { preferences ->
+        val actionName = preferences[FLIP_PHONE_ACTION] ?: Action.NONE.name
         try { Action.valueOf(actionName) } catch (e: Exception) { Action.NONE }
     }
     
@@ -79,24 +84,24 @@ class SettingsRepository(private val context: Context) {
         try { Action.valueOf(actionName) } catch (e: Exception) { Action.NONE }
     }
     
-    val fingerprintAppPackage: Flow<String?> = context.dataStore.data.map { it[FINGERPRINT_APP_PACKAGE] }
-    val powerButtonAppPackage: Flow<String?> = context.dataStore.data.map { it[POWER_BUTTON_APP_PACKAGE] }
+    val shakeAppPackage: Flow<String?> = context.dataStore.data.map { it[SHAKE_APP_PACKAGE] }
+    val proximityWaveAppPackage: Flow<String?> = context.dataStore.data.map { it[PROXIMITY_WAVE_APP_PACKAGE] }
+    val flipPhoneAppPackage: Flow<String?> = context.dataStore.data.map { it[FLIP_PHONE_APP_PACKAGE] }
     val backPanelAppPackage: Flow<String?> = context.dataStore.data.map { it[BACK_PANEL_APP_PACKAGE] }
     
-    val fingerprintEnabled: Flow<Boolean> = context.dataStore.data.map { it[FINGERPRINT_ENABLED] ?: true }
-    val powerButtonEnabled: Flow<Boolean> = context.dataStore.data.map { it[POWER_BUTTON_ENABLED] ?: true }
+    val shakeEnabled: Flow<Boolean> = context.dataStore.data.map { it[SHAKE_ENABLED] ?: true }
+    val proximityWaveEnabled: Flow<Boolean> = context.dataStore.data.map { it[PROXIMITY_WAVE_ENABLED] ?: true }
+    val flipPhoneEnabled: Flow<Boolean> = context.dataStore.data.map { it[FLIP_PHONE_ENABLED] ?: true }
     val backPanelEnabled: Flow<Boolean> = context.dataStore.data.map { it[BACK_PANEL_ENABLED] ?: true }
 
     val activeTrigger: Flow<TriggerMethod> = context.dataStore.data.map { preferences ->
-        val triggerName = preferences[ACTIVE_TRIGGER] ?: TriggerMethod.FINGERPRINT.name
-        try { TriggerMethod.valueOf(triggerName) } catch (e: Exception) { TriggerMethod.FINGERPRINT }
+        val triggerName = preferences[ACTIVE_TRIGGER] ?: TriggerMethod.SHAKE.name
+        try { TriggerMethod.valueOf(triggerName) } catch (e: Exception) { TriggerMethod.SHAKE }
     }
     
     val startOnBoot: Flow<Boolean> = context.dataStore.data.map { it[START_ON_BOOT] ?: false }
     val onboardingCompleted: Flow<Boolean> = context.dataStore.data.map { it[ONBOARDING_COMPLETED] ?: false }
     val autostartChecked: Flow<Boolean> = context.dataStore.data.map { it[AUTOSTART_CHECKED] ?: false }
-    
-    val powerButtonTimeoutMs: Flow<Int> = context.dataStore.data.map { it[POWER_BUTTON_TIMEOUT_MS] ?: 300 }
     
     val backPanelSensitivity: Flow<Int> = context.dataStore.data.map { it[BACK_PANEL_SENSITIVITY] ?: 1 }
     val backPanelTimeoutMs: Flow<Int> = context.dataStore.data.map { it[BACK_PANEL_TIMEOUT_MS] ?: 300 }
@@ -131,21 +136,23 @@ class SettingsRepository(private val context: Context) {
     suspend fun setTimeoutMs(timeout: Int) { context.dataStore.edit { it[TIMEOUT_MS] = timeout } }
         suspend fun setSelectedAction(action: Action) { context.dataStore.edit { it[SELECTED_ACTION] = action.name } }
     
-    suspend fun setFingerprintAction(action: Action) { context.dataStore.edit { it[FINGERPRINT_ACTION] = action.name } }
-    suspend fun setPowerButtonAction(action: Action) { context.dataStore.edit { it[POWER_BUTTON_ACTION] = action.name } }
+    suspend fun setShakeAction(action: Action) { context.dataStore.edit { it[SHAKE_ACTION] = action.name } }
+    suspend fun setProximityWaveAction(action: Action) { context.dataStore.edit { it[PROXIMITY_WAVE_ACTION] = action.name } }
+    suspend fun setFlipPhoneAction(action: Action) { context.dataStore.edit { it[FLIP_PHONE_ACTION] = action.name } }
     suspend fun setBackPanelAction(action: Action) { context.dataStore.edit { it[BACK_PANEL_ACTION] = action.name } }
-    suspend fun setFingerprintAppPackage(pkg: String) { context.dataStore.edit { it[FINGERPRINT_APP_PACKAGE] = pkg } }
-    suspend fun setPowerButtonAppPackage(pkg: String) { context.dataStore.edit { it[POWER_BUTTON_APP_PACKAGE] = pkg } }
+    suspend fun setShakeAppPackage(pkg: String) { context.dataStore.edit { it[SHAKE_APP_PACKAGE] = pkg } }
+    suspend fun setProximityWaveAppPackage(pkg: String) { context.dataStore.edit { it[PROXIMITY_WAVE_APP_PACKAGE] = pkg } }
+    suspend fun setFlipPhoneAppPackage(pkg: String) { context.dataStore.edit { it[FLIP_PHONE_APP_PACKAGE] = pkg } }
     suspend fun setBackPanelAppPackage(pkg: String) { context.dataStore.edit { it[BACK_PANEL_APP_PACKAGE] = pkg } }
-    suspend fun setFingerprintEnabled(enabled: Boolean) { context.dataStore.edit { it[FINGERPRINT_ENABLED] = enabled } }
-    suspend fun setPowerButtonEnabled(enabled: Boolean) { context.dataStore.edit { it[POWER_BUTTON_ENABLED] = enabled } }
+    suspend fun setShakeEnabled(enabled: Boolean) { context.dataStore.edit { it[SHAKE_ENABLED] = enabled } }
+    suspend fun setProximityWaveEnabled(enabled: Boolean) { context.dataStore.edit { it[PROXIMITY_WAVE_ENABLED] = enabled } }
+    suspend fun setFlipPhoneEnabled(enabled: Boolean) { context.dataStore.edit { it[FLIP_PHONE_ENABLED] = enabled } }
     suspend fun setBackPanelEnabled(enabled: Boolean) { context.dataStore.edit { it[BACK_PANEL_ENABLED] = enabled } }
 
     suspend fun setActiveTrigger(trigger: TriggerMethod) { context.dataStore.edit { it[ACTIVE_TRIGGER] = trigger.name } }
     suspend fun setStartOnBoot(enabled: Boolean) { context.dataStore.edit { it[START_ON_BOOT] = enabled } }
     suspend fun setOnboardingCompleted(completed: Boolean) { context.dataStore.edit { it[ONBOARDING_COMPLETED] = completed } }
     suspend fun setAutostartChecked(checked: Boolean) { context.dataStore.edit { it[AUTOSTART_CHECKED] = checked } }
-    suspend fun setPowerButtonTimeoutMs(timeout: Int) { context.dataStore.edit { it[POWER_BUTTON_TIMEOUT_MS] = timeout } }
     suspend fun setBackPanelSensitivity(sensitivity: Int) { context.dataStore.edit { it[BACK_PANEL_SENSITIVITY] = sensitivity } }
     suspend fun setBackPanelTimeoutMs(timeout: Int) { context.dataStore.edit { it[BACK_PANEL_TIMEOUT_MS] = timeout } }
     suspend fun setVibrateEnabled(enabled: Boolean) { context.dataStore.edit { it[VIBRATE_ENABLED] = enabled } }

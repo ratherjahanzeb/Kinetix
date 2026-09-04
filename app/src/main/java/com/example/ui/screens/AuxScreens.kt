@@ -80,12 +80,14 @@ fun SectionHeader(title: String) {
 
 @Composable
 fun TriggerSelectionScreen(viewModel: MainViewModel, navController: NavController) {
-    val fingerprintEnabled by viewModel.fingerprintEnabled.collectAsStateWithLifecycle()
-    val powerButtonEnabled by viewModel.powerButtonEnabled.collectAsStateWithLifecycle()
+    val shakeEnabled by viewModel.shakeEnabled.collectAsStateWithLifecycle()
+    val proximityWaveEnabled by viewModel.proximityWaveEnabled.collectAsStateWithLifecycle()
+    val flipPhoneEnabled by viewModel.flipPhoneEnabled.collectAsStateWithLifecycle()
     val backPanelEnabled by viewModel.backPanelEnabled.collectAsStateWithLifecycle()
     
-    val fpAction by viewModel.fingerprintAction.collectAsStateWithLifecycle()
-    val pbAction by viewModel.powerButtonAction.collectAsStateWithLifecycle()
+    val shAction by viewModel.shakeAction.collectAsStateWithLifecycle()
+    val proxAction by viewModel.proximityWaveAction.collectAsStateWithLifecycle()
+    val flipAction by viewModel.flipPhoneAction.collectAsStateWithLifecycle()
     val bpAction by viewModel.backPanelAction.collectAsStateWithLifecycle()
     
     val compatibility = viewModel.compatibilityStatus
@@ -103,25 +105,36 @@ fun TriggerSelectionScreen(viewModel: MainViewModel, navController: NavControlle
             SectionHeader("AVAILABLE SENSORS")
             
             TriggerItem(
-                trigger = TriggerMethod.FINGERPRINT,
-                icon = Icons.Rounded.Fingerprint,
-                isChecked = fingerprintEnabled,
-                isSupported = compatibility.hasHardware && compatibility.hasFingerprintInputDevice,
-                statusText = if (compatibility.hasHardware && compatibility.hasFingerprintInputDevice) "Supported" else "Unsupported (No accessible fingerprint sensor)",
-                selectedAction = fpAction,
-                onCheckedChange = { viewModel.setFingerprintEnabled(it) },
-                onClick = { navController.navigate("select_action/${TriggerMethod.FINGERPRINT.name}") }
+                trigger = TriggerMethod.SHAKE,
+                icon = Icons.Rounded.Vibration,
+                isChecked = shakeEnabled,
+                isSupported = compatibility.hasAccelerometer,
+                statusText = if (compatibility.hasAccelerometer) "Supported (Uses motion sensors)" else "Unsupported (No accelerometer)",
+                selectedAction = shAction,
+                onCheckedChange = { viewModel.setShakeEnabled(it) },
+                onClick = { navController.navigate("select_action/${TriggerMethod.SHAKE.name}") }
             )
             
             TriggerItem(
-                trigger = TriggerMethod.POWER_BUTTON,
-                icon = Icons.Rounded.PowerSettingsNew,
-                isChecked = powerButtonEnabled,
-                isSupported = true,
-                statusText = "Restricted (May not work due to Android OEM limitations)",
-                selectedAction = pbAction,
-                onCheckedChange = { viewModel.setPowerButtonEnabled(it) },
-                onClick = { navController.navigate("select_action/${TriggerMethod.POWER_BUTTON.name}") }
+                trigger = TriggerMethod.PROXIMITY_WAVE,
+                icon = Icons.Rounded.PanTool,
+                isChecked = proximityWaveEnabled,
+                isSupported = compatibility.hasProximitySensor,
+                statusText = if (compatibility.hasProximitySensor) "Supported (Uses proximity sensor)" else "Unsupported (No proximity sensor)",
+                selectedAction = proxAction,
+                onCheckedChange = { viewModel.setProximityWaveEnabled(it) },
+                onClick = { navController.navigate("select_action/${TriggerMethod.PROXIMITY_WAVE.name}") }
+            )
+            
+            TriggerItem(
+                trigger = TriggerMethod.FLIP_PHONE,
+                icon = Icons.Rounded.ScreenRotation,
+                isChecked = flipPhoneEnabled,
+                isSupported = compatibility.hasAccelerometer,
+                statusText = if (compatibility.hasAccelerometer) "Supported (Uses motion sensors)" else "Unsupported (No accelerometer)",
+                selectedAction = flipAction,
+                onCheckedChange = { viewModel.setFlipPhoneEnabled(it) },
+                onClick = { navController.navigate("select_action/${TriggerMethod.FLIP_PHONE.name}") }
             )
             
             TriggerItem(
@@ -219,8 +232,9 @@ fun TriggerItem(
 @Composable
 fun ActionSelectionScreen(viewModel: MainViewModel, navController: NavController, triggerMethod: TriggerMethod) {
     val selectedAction by when (triggerMethod) {
-        TriggerMethod.FINGERPRINT -> viewModel.fingerprintAction.collectAsStateWithLifecycle()
-        TriggerMethod.POWER_BUTTON -> viewModel.powerButtonAction.collectAsStateWithLifecycle()
+        TriggerMethod.SHAKE -> viewModel.shakeAction.collectAsStateWithLifecycle()
+        TriggerMethod.PROXIMITY_WAVE -> viewModel.proximityWaveAction.collectAsStateWithLifecycle()
+        TriggerMethod.FLIP_PHONE -> viewModel.flipPhoneAction.collectAsStateWithLifecycle()
         TriggerMethod.BACK_PANEL -> viewModel.backPanelAction.collectAsStateWithLifecycle()
     }
     
@@ -255,8 +269,9 @@ fun ActionSelectionScreen(viewModel: MainViewModel, navController: NavController
                     isSelected = selectedAction == action,
                     onClick = { 
                         when (triggerMethod) {
-                            TriggerMethod.FINGERPRINT -> viewModel.setFingerprintAction(action)
-                            TriggerMethod.POWER_BUTTON -> viewModel.setPowerButtonAction(action)
+                            TriggerMethod.SHAKE -> viewModel.setShakeAction(action)
+                            TriggerMethod.PROXIMITY_WAVE -> viewModel.setProximityWaveAction(action)
+                            TriggerMethod.FLIP_PHONE -> viewModel.setFlipPhoneAction(action)
                             TriggerMethod.BACK_PANEL -> viewModel.setBackPanelAction(action)
                         }
                         if (action == Action.OPEN_APP) {
@@ -343,9 +358,8 @@ fun CompatibilityScreen(viewModel: MainViewModel, navController: NavController) 
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             InfoCard("Hardware Support", compatibility.hasHardware.toString())
-            InfoCard("Fingerprint Sensor", compatibility.hasFingerprintInputDevice.toString())
-            InfoCard("Accessibility Enabled", compatibility.isAccessibilityEnabled.toString())
             InfoCard("Accelerometer", compatibility.hasAccelerometer.toString())
+            InfoCard("Accessibility Enabled", compatibility.isAccessibilityEnabled.toString())
         }
     }
 }
@@ -860,8 +874,9 @@ fun AppSelectionScreen(viewModel: MainViewModel, navController: NavController, t
                     items(filteredApps) { app ->
                         AppItem(app = app, onClick = {
                             when (triggerMethod) {
-                                TriggerMethod.FINGERPRINT -> viewModel.setFingerprintAppPackage(app.packageName)
-                                TriggerMethod.POWER_BUTTON -> viewModel.setPowerButtonAppPackage(app.packageName)
+                                TriggerMethod.SHAKE -> viewModel.setShakeAppPackage(app.packageName)
+                                TriggerMethod.PROXIMITY_WAVE -> viewModel.setProximityWaveAppPackage(app.packageName)
+                                TriggerMethod.FLIP_PHONE -> viewModel.setFlipPhoneAppPackage(app.packageName)
                                 TriggerMethod.BACK_PANEL -> viewModel.setBackPanelAppPackage(app.packageName)
                             }
                             navController.navigateUp()
