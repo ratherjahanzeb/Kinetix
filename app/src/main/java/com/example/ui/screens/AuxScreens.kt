@@ -1,6 +1,8 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,7 +33,7 @@ import android.widget.Toast
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.example.R
@@ -57,7 +60,7 @@ fun SimpleTopBar(title: String, navController: NavController) {
         title = { Text(title, style = MaterialTheme.typography.titleLarge) },
         navigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
-                Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -165,7 +168,10 @@ fun TriggerItem(
 ) {
     val containerColor by animateColorAsState(
         targetValue = if (isChecked) AuroraSecondary.copy(alpha = 0.15f) else SurfaceVariantDark,
-        animationSpec = tween(300)
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        )
     )
     
     Row(
@@ -294,7 +300,10 @@ fun ActionItem(
 ) {
     val containerColor by animateColorAsState(
         targetValue = if (isSelected) AuroraPrimary.copy(alpha = 0.15f) else SurfaceVariantDark,
-        animationSpec = tween(300)
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        )
     )
 
     Row(

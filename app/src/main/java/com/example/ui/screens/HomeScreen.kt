@@ -4,6 +4,8 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.LocalIndication
@@ -26,7 +28,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -75,11 +77,17 @@ fun GlowingIconBox(
 ) {
     val containerColor by animateColorAsState(
         targetValue = if (isActive) color.copy(alpha = 0.2f) else SurfaceVariantDark,
-        animationSpec = tween(300)
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        )
     )
     val iconColor by animateColorAsState(
         targetValue = if (isActive) color else TextSecondary,
-        animationSpec = tween(300)
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        )
     )
 
     Box(
@@ -304,64 +312,66 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
 
 
             // Tap Style Selector
-            item {
-                AuroraCard {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        GlowingIconBox(icon = Icons.Rounded.TouchApp, isActive = false)
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Back Tap Style",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = TextPrimary
+            if (bp) {
+                item {
+                    AuroraCard {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            GlowingIconBox(icon = Icons.Rounded.TouchApp, isActive = false)
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Back Tap Style",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = when(backPanelSensitivity) {
+                                        0 -> "Hard Tap"
+                                        2 -> "Smooth Tap"
+                                        else -> "Balanced Tap"
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = TextSecondary
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FilterChip(
+                                selected = backPanelSensitivity == 0,
+                                onClick = { viewModel.setBackPanelSensitivity(0) },
+                                label = { Text("Hard") },
+                                modifier = Modifier.weight(1f),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                                    selectedLabelColor = AuroraSecondary
+                                )
                             )
-                            Text(
-                                text = when(backPanelSensitivity) {
-                                    0 -> "Hard Tap"
-                                    2 -> "Smooth Tap"
-                                    else -> "Balanced Tap"
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = TextSecondary
+                            FilterChip(
+                                selected = backPanelSensitivity == 1,
+                                onClick = { viewModel.setBackPanelSensitivity(1) },
+                                label = { Text("Balance") },
+                                modifier = Modifier.weight(1f),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                                    selectedLabelColor = AuroraSecondary
+                                )
+                            )
+                            FilterChip(
+                                selected = backPanelSensitivity == 2,
+                                onClick = { viewModel.setBackPanelSensitivity(2) },
+                                label = { Text("Smooth") },
+                                modifier = Modifier.weight(1f),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                                    selectedLabelColor = AuroraSecondary
+                                )
                             )
                         }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        FilterChip(
-                            selected = backPanelSensitivity == 0,
-                            onClick = { viewModel.setBackPanelSensitivity(0) },
-                            label = { Text("Hard") },
-                            modifier = Modifier.weight(1f),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
-                                selectedLabelColor = AuroraSecondary
-                            )
-                        )
-                        FilterChip(
-                            selected = backPanelSensitivity == 1,
-                            onClick = { viewModel.setBackPanelSensitivity(1) },
-                            label = { Text("Balance") },
-                            modifier = Modifier.weight(1f),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
-                                selectedLabelColor = AuroraSecondary
-                            )
-                        )
-                        FilterChip(
-                            selected = backPanelSensitivity == 2,
-                            onClick = { viewModel.setBackPanelSensitivity(2) },
-                            label = { Text("Smooth") },
-                            modifier = Modifier.weight(1f),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
-                                selectedLabelColor = AuroraSecondary
-                            )
-                        )
                     }
                 }
             }
