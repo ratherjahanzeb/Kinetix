@@ -1,0 +1,1 @@
+sed -i '1s/^/import androidx.navigation.NavDestination.Companion.hierarchy\nimport androidx.navigation.NavGraph.Companion.findStartDestination\n/' app/src/main/java/com/example/ui/screens/AuxScreens.kt

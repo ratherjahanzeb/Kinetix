@@ -1,0 +1,6 @@
+sed -i '/val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")/a\        val AUTOSTART_CHECKED = booleanPreferencesKey("autostart_checked")' app/src/main/java/com/example/SettingsRepository.kt
+sed -i '/val onboardingCompleted: Flow<Boolean> = context.dataStore.data.map { it\[ONBOARDING_COMPLETED\] ?: false }/a\    val autostartChecked: Flow<Boolean> = context.dataStore.data.map { it[AUTOSTART_CHECKED] ?: false }' app/src/main/java/com/example/SettingsRepository.kt
+sed -i '/suspend fun setOnboardingCompleted(completed: Boolean) { context.dataStore.edit { it\[ONBOARDING_COMPLETED\] = completed } }/a\    suspend fun setAutostartChecked(checked: Boolean) { context.dataStore.edit { it[AUTOSTART_CHECKED] = checked } }' app/src/main/java/com/example/SettingsRepository.kt
+
+sed -i '/val onboardingCompleted: StateFlow<Boolean?> = settingsRepo.onboardingCompleted/i\    val autostartChecked: StateFlow<Boolean> = settingsRepo.autostartChecked\n        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)\n' app/src/main/java/com/example/MainViewModel.kt
+sed -i '/fun setOnboardingCompleted() {/i\    fun setAutostartChecked() {\n        viewModelScope.launch { settingsRepo.setAutostartChecked(true) }\n    }\n' app/src/main/java/com/example/MainViewModel.kt

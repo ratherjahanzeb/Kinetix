@@ -1,0 +1,1 @@
+sed -i 's/onCheckedChange = { viewModel.setEnabled(it) }/onCheckedChange = { if (it \&\& \!hasAllPermissions) navController.navigate("permissions") else viewModel.setEnabled(it) }/g' app/src/main/java/com/example/ui/screens/HomeScreen.kt
