@@ -1,6 +1,0 @@
-sed -i '/val START_ON_BOOT = booleanPreferencesKey("start_on_boot")/a\        val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")' app/src/main/java/com/example/SettingsRepository.kt
-sed -i '/val startOnBoot: Flow<Boolean> = context.dataStore.data.map { it\[START_ON_BOOT\] ?: false }/a\    val onboardingCompleted: Flow<Boolean> = context.dataStore.data.map { it[ONBOARDING_COMPLETED] ?: false }' app/src/main/java/com/example/SettingsRepository.kt
-sed -i '/suspend fun setStartOnBoot(enabled: Boolean) { context.dataStore.edit { it\[START_ON_BOOT\] = enabled } }/a\    suspend fun setOnboardingCompleted(completed: Boolean) { context.dataStore.edit { it[ONBOARDING_COMPLETED] = completed } }' app/src/main/java/com/example/SettingsRepository.kt
-
-sed -i '/val activeTrigger: StateFlow<TriggerMethod>/i\    val onboardingCompleted: StateFlow<Boolean?> = settingsRepo.onboardingCompleted\n        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)\n' app/src/main/java/com/example/MainViewModel.kt
-sed -i '/fun setActiveTrigger/i\    fun setOnboardingCompleted() {\n        viewModelScope.launch { settingsRepo.setOnboardingCompleted(true) }\n    }\n' app/src/main/java/com/example/MainViewModel.kt
