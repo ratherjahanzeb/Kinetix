@@ -758,6 +758,12 @@ fun AppSelectionScreen(viewModel: MainViewModel, navController: NavController, t
     val context = LocalContext.current
     var apps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredApps = remember(apps, searchQuery) {
+        if (searchQuery.isBlank()) apps
+        else apps.filter { it.name.contains(searchQuery, ignoreCase = true) || it.packageName.contains(searchQuery, ignoreCase = true) }
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     var refreshTrigger by remember { mutableStateOf(0) }
@@ -810,25 +816,57 @@ fun AppSelectionScreen(viewModel: MainViewModel, navController: NavController, t
         topBar = { SimpleTopBar("Select App", navController) },
         containerColor = DarkBackground
     ) { innerPadding ->
-        if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AuroraPrimary)
-            }
-        } else {
-            androidx.compose.foundation.lazy.LazyColumn(
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                items(apps) { app ->
-                    AppItem(app = app, onClick = {
-                        when (triggerMethod) {
-                            TriggerMethod.FINGERPRINT -> viewModel.setFingerprintAppPackage(app.packageName)
-                            TriggerMethod.POWER_BUTTON -> viewModel.setPowerButtonAppPackage(app.packageName)
-                            TriggerMethod.BACK_PANEL -> viewModel.setBackPanelAppPackage(app.packageName)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                placeholder = { Text("Search apps...", color = TextSecondary) },
+                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = TextSecondary) },
+                trailingIcon = if (searchQuery.isNotEmpty()) {
+                    {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(Icons.Rounded.Clear, contentDescription = "Clear", tint = TextSecondary)
                         }
-                        navController.navigateUp()
-                    })
+                    }
+                } else null,
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = AuroraPrimary,
+                    unfocusedBorderColor = DividerColor,
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    cursorColor = AuroraPrimary,
+                    focusedContainerColor = SurfaceVariantDark,
+                    unfocusedContainerColor = SurfaceVariantDark
+                )
+            )
+
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = AuroraPrimary)
+                }
+            } else {
+                androidx.compose.foundation.lazy.LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(filteredApps) { app ->
+                        AppItem(app = app, onClick = {
+                            when (triggerMethod) {
+                                TriggerMethod.FINGERPRINT -> viewModel.setFingerprintAppPackage(app.packageName)
+                                TriggerMethod.POWER_BUTTON -> viewModel.setPowerButtonAppPackage(app.packageName)
+                                TriggerMethod.BACK_PANEL -> viewModel.setBackPanelAppPackage(app.packageName)
+                            }
+                            navController.navigateUp()
+                        })
+                    }
                 }
             }
         }

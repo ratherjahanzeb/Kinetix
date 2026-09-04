@@ -40,6 +40,12 @@ class DoubleTapAccessibilityService : AccessibilityService() {
         }
 
         scope.launch {
+            settingsRepo.isEnabled.collect { isEnabled ->
+                updateForegroundState(isEnabled)
+            }
+        }
+
+        scope.launch {
             combine(settingsRepo.isEnabled, settingsRepo.backPanelEnabled) { isEnabled, backPanel ->
                 Pair(isEnabled, backPanel)
             }.collect { (isEnabled, backPanel) ->
@@ -218,6 +224,50 @@ class DoubleTapAccessibilityService : AccessibilityService() {
             }
         } catch (e: Exception) {
             Log.e("DoubleTap", "Failed to vibrate", e)
+        }
+    }
+
+    private fun updateForegroundState(isEnabled: Boolean) {
+        val channelId = "taptrigger_service_channel"
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channel = android.app.NotificationChannel(
+                channelId,
+                "TapTrigger Active Service",
+                android.app.NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Keeps TapTrigger active in the background"
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        if (isEnabled) {
+            val notificationIntent = Intent(this, MainActivity::class.java)
+            val pendingIntent = android.app.PendingIntent.getActivity(
+                this, 0, notificationIntent,
+                android.app.PendingIntent.FLAG_IMMUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT
+            )
+
+            val notification = androidx.core.app.NotificationCompat.Builder(this, channelId)
+                .setContentTitle("TapTrigger is Active")
+                .setContentText("Listening for double-tap gestures...")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentIntent(pendingIntent)
+                .setOngoing(true)
+                .build()
+
+            try {
+                notificationManager.notify(1, notification)
+            } catch (e: Exception) {
+                Log.e("DoubleTap", "Failed to show notification", e)
+            }
+        } else {
+            try {
+                notificationManager.cancel(1)
+            } catch (e: Exception) {
+                Log.e("DoubleTap", "Failed to cancel notification", e)
+            }
         }
     }
 }
