@@ -1,11 +1,13 @@
 package com.example
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorManager
+import android.provider.Settings
+import android.text.TextUtils
 import android.view.InputDevice
-import android.view.accessibility.AccessibilityManager
 
 data class CompatibilityStatus(
     val hasHardware: Boolean,
@@ -50,8 +52,23 @@ class CompatibilityChecker(private val context: Context) {
             }
         }
 
-        val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-        val isAccessibilityEnabled = am.isEnabled
+        val expectedComponentName = ComponentName(context, DoubleTapAccessibilityService::class.java)
+        val enabledServices = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: ""
+        
+        var isAccessibilityEnabled = false
+        val splitter = TextUtils.SimpleStringSplitter(':')
+        splitter.setString(enabledServices)
+        while (splitter.hasNext()) {
+            val componentNameStr = splitter.next()
+            val cmp = ComponentName.unflattenFromString(componentNameStr)
+            if (cmp != null && cmp == expectedComponentName) {
+                isAccessibilityEnabled = true
+                break
+            }
+        }
         
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val hasAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null

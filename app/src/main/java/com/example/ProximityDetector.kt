@@ -16,6 +16,8 @@ class ProximityDetector(
     private var backwardMoveCount = 0
     private var lastMoveTime = 0L
     private var isCoolingDown = false
+    private var accelerationStartTime = 0L
+    private var isAccelerating = false
     
     private var gravity = FloatArray(3)
     private val alpha = 0.8f
@@ -27,6 +29,7 @@ class ProximityDetector(
             backwardMoveCount = 0
             gravity = floatArrayOf(0f, 0f, 0f)
             isCoolingDown = false
+            isAccelerating = false
         }
     }
 
@@ -40,7 +43,6 @@ class ProximityDetector(
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
 
-        // High-pass filter to remove gravity
         gravity[0] = alpha * gravity[0] + (1f - alpha) * event.values[0]
         gravity[1] = alpha * gravity[1] + (1f - alpha) * event.values[1]
         gravity[2] = alpha * gravity[2] + (1f - alpha) * event.values[2]
@@ -48,28 +50,31 @@ class ProximityDetector(
         val y = event.values[1] - gravity[1]
         val z = event.values[2] - gravity[2]
         
-        // Z positive means phone accelerating towards user (pulled backwards)
-        // Y negative means phone accelerating downwards (pulled towards user if flat)
-        val threshold = 3.5f
-        
+        val threshold = 4.0f
         val isMovingBackward = z > threshold || y < -threshold
         
         val now = System.currentTimeMillis()
         
         if (isMovingBackward) {
-            if (!isCoolingDown) {
-                backwardMoveCount++
-                lastMoveTime = now
-                isCoolingDown = true
-                
-                if (backwardMoveCount >= 2) {
-                    onWave()
-                    backwardMoveCount = 0
+            if (!isAccelerating) {
+                isAccelerating = true
+                accelerationStartTime = now
+            } else {
+                if (now - accelerationStartTime >= 100 && !isCoolingDown) {
+                    backwardMoveCount++
                     lastMoveTime = now
+                    isCoolingDown = true
+                    isAccelerating = false
+                    
+                    if (backwardMoveCount >= 2) {
+                        onWave()
+                        backwardMoveCount = 0
+                        lastMoveTime = now
+                    }
                 }
             }
         } else {
-            // Reset cooldown when movement settles
+            isAccelerating = false
             if (isCoolingDown && z < 1.5f && y > -1.5f) {
                 if (now - lastMoveTime > 300) { 
                     isCoolingDown = false
@@ -77,10 +82,10 @@ class ProximityDetector(
             }
         }
         
-        // Timeout
         if (backwardMoveCount > 0 && now - lastMoveTime > 1500) {
             backwardMoveCount = 0
             isCoolingDown = false
+            isAccelerating = false
         }
     }
 

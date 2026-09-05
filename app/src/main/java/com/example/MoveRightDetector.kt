@@ -42,16 +42,13 @@ class MoveRightDetector(
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
 
-        // High-pass filter to remove gravity
         gravity[0] = alpha * gravity[0] + (1f - alpha) * event.values[0]
         gravity[1] = alpha * gravity[1] + (1f - alpha) * event.values[1]
         gravity[2] = alpha * gravity[2] + (1f - alpha) * event.values[2]
 
         val x = event.values[0] - gravity[0]
         
-        // Positive X means phone accelerating to the right
         val threshold = 3.5f * (1.5f - sensorSensitivity.coerceIn(0.1f, 1.0f))
-        
         val isMovingRight = x > threshold
         
         val now = System.currentTimeMillis()
@@ -69,7 +66,6 @@ class MoveRightDetector(
                 }
             }
         } else {
-            // Reset cooldown when movement settles
             if (isCoolingDown && x < 1.5f) {
                 if (now - lastMoveTime > 300) { 
                     isCoolingDown = false
@@ -77,7 +73,6 @@ class MoveRightDetector(
             }
         }
         
-        // Timeout
         if (moveRightCount > 0 && now - lastMoveTime > 1500) {
             moveRightCount = 0
             isCoolingDown = false

@@ -80,7 +80,7 @@ fun PermissionsScreen(viewModel: MainViewModel, navController: NavController) {
                 color = TextPrimary
             )
             Text(
-                text = "Let's set up the required access so TapTrigger can function perfectly in the background.",
+                text = "Let's set up the required access so Kinetix can function perfectly in the background.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = TextSecondary
             )

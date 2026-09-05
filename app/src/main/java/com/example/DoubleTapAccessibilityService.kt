@@ -337,16 +337,16 @@ class DoubleTapAccessibilityService : AccessibilityService() {
     }
 
     private fun updateForegroundState(isEnabled: Boolean) {
-        val channelId = "taptrigger_service_channel"
+        val channelId = "kinetix_service_channel"
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
         
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             val channel = android.app.NotificationChannel(
                 channelId,
-                "TapTrigger Active Service",
+                "Kinetix Active Service",
                 android.app.NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Keeps TapTrigger active in the background"
+                description = "Keeps Kinetix active in the background"
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -359,8 +359,8 @@ class DoubleTapAccessibilityService : AccessibilityService() {
             )
 
             val notification = androidx.core.app.NotificationCompat.Builder(this, channelId)
-                .setContentTitle("TapTrigger is Active")
-                .setContentText("Listening for double-tap gestures...")
+                .setContentTitle("Kinetix is Active")
+                .setContentText("Listening for gestures...")
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)

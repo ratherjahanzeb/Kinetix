@@ -59,7 +59,7 @@ fun SplashScreen(
             // Add a small pause at the end for visual completion
             delay(200)
             
-            val startDest = if (onboardingCompleted == true) "home" else "permissions"
+            val startDest = "home"
             
             navController.navigate(startDest) {
                 popUpTo("splash") { inclusive = true }

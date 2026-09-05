@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "TapTrigger"
+rootProject.name = "Kinetix"
 
 include(":app")
