@@ -57,22 +57,7 @@ Built natively in **Kotlin** and **Jetpack Compose**, TapTrigger adheres to mode
 
 ---
 
-## 🚀 Getting Started & Installation
-
-### Prerequisites
-*   Android Studio Ladybug / Koala or later
-*   JDK 11 or higher
-*   Android SDK 24 (Nougat) or higher (Target SDK 36)
-
-### Building from Source
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/TapTrigger.git
-   ```
-2. Open the project folder in Android Studio.
-3. Sync Gradle and run the app on your physical device or emulator.
-
-> **Note**: For motion and sensor features to work correctly, test on a physical Android device as emulators may have limited simulated sensor support.
+  
 
 ---
 
