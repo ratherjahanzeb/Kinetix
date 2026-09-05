@@ -2,12 +2,11 @@
 
 # ⚡ Kinetix
 
-### *Lightning-Fast Custom Gesture & Motion Triggers for Android*
+### *Device Motion & Gesture Triggers for Android*
 
 [![Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=flat-square&logo=android&logoColor=white)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9+-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4?style=flat-square&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
 </div>
 
@@ -15,54 +14,31 @@
 
 ## 📱 About **Kinetix**
 
-**Kinetix** is a powerful, lightweight, and open-source Android utility app that transforms everyday device movements and gestures into instant shortcuts. Whether you want to toggle your flashlight with a quick motion, capture a screenshot with a proximity wave, or pull down your notification shade by moving your phone, Kinetix puts device control right at your fingertips.
+**Kinetix** is an open-source Android utility app that triggers configured system actions based on physical device movements and gestures (such as moving left, backward/proximity, flipping, or back panel touches).
 
-Built natively in **Kotlin** and **Jetpack Compose**, Kinetix adheres to modern **Material Design 3** principles with a gorgeous, high-contrast dark theme, fluid animations, immersive sound effects on launch, and battery-efficient background sensor monitoring.
+Built with **Kotlin** and **Jetpack Compose**, Kinetix features Material Design 3 styling, theme customization, trigger logging, vibration feedback, and startup sound effects.
 
 ---
 
 ## ✨ Key Features
 
-### 🖐️ Advanced Motion & Gesture Detectors
-*   **Move Left / Right / Backward / Forward**: Customize triggers based on 3-axis accelerometer and proximity sensors.
-*   **Proximity Wave**: Wave your hand over the proximity sensor to execute shortcuts.
-*   **Flip Phone**: Place your device face down and back up to trigger functions.
-
-### ⚡ Instant Actions Library
-*   🏠 **Go Home**: Instantly return to the home screen.
-*   📑 **Recent Apps**: Open the system task switcher.
-*   🔔 **Notifications**: Pull down the notification shade.
-*   ⚙️ **Quick Settings**: Expand quick settings toggles.
-*   📸 **Take Screenshot**: Capture and save screen activity instantly.
-*   🔦 **Toggle Flashlight**: Turn the device flashlight on or off.
-*   🔒 **Lock Screen**: Secure and lock the device display.
-*   🚀 **Open App**: Launch any installed application on your device.
-
-### 🎨 Modern UI & Experience
-*   **Material Design 3 & Themes**: Choose between System, Light, Dark, or AMOLED theme modes, along with custom accent color palettes.
-*   **Audio & Haptics**: Immersive procedural "shooo" sound effects on startup and tactile vibration feedback.
-*   **Battery Efficient**: Intelligent sensor listening lifecycle management that minimizes power consumption.
-*   **Accessibility Integration**: Leverages accessibility services for robust system-level actions.
+*   **Configurable Triggers**: Set actions for Move Left, Move Backward, Flip Phone, and Back Panel.
+*   **Action Mapping**: Map gestures to system actions like Home, Flashlight, Screenshot, or launching any installed app.
+*   **Sensor Sensitivity Calibration**: Adjust sensitivity thresholds for precise gesture detection.
+*   **Trigger History Log**: Review recent successful gesture triggers with timestamps.
+*   **Custom Theming**: Choose between System, Light, Dark, or AMOLED themes along with accent color palettes.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🛠️ Tech Stack
 
-*   **Language**: 100% Kotlin
-*   **UI Framework**: Jetpack Compose & Material 3
-*   **Asynchronous Processing**: Kotlin Coroutines & Flows
-*   **Architecture**: MVVM (Model-View-ViewModel) with reactive state management
-*   **Sensors**: Android Hardware Sensor Manager (Accelerometer, Proximity)
-*   **System Integration**: Accessibility Services & Intent Launchers
+*   **Language**: Kotlin
+*   **UI**: Jetpack Compose & Material 3
+*   **Persistence**: DataStore / Local State
+*   **Sensors**: Android Sensor Manager & Accessibility Services
 
 ---
 
 ## 📄 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-<div align="center">
-  <sub>Built with passion using Jetpack Compose and Kotlin.</sub>
-</div>
+Distributed under the MIT License.
