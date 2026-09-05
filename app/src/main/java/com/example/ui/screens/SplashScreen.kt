@@ -49,6 +49,7 @@ fun SplashScreen(
 
     LaunchedEffect(onboardingCompleted) {
         if (onboardingCompleted != null) {
+            com.example.playShoooSound()
             // Start the squiggly circle animation
             progress.animateTo(
                 targetValue = 1f,

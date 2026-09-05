@@ -5,26 +5,28 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 
-class ProximityDetector(
+class MoveRightDetector(
     private val sensorManager: SensorManager,
-    private val onWave: () -> Unit
+    private val onMoveRight: () -> Unit
 ) : SensorEventListener {
-    
     private var accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private var isListening = false
     
-    private var backwardMoveCount = 0
-    private var lastMoveTime = 0L
-    private var isCoolingDown = false
+    var sensitivityLevel: Int = 1 
+    var sensorSensitivity: Float = 0.5f
     
     private var gravity = FloatArray(3)
     private val alpha = 0.8f
+    
+    private var moveRightCount: Int = 0
+    private var lastMoveTime: Long = 0
+    private var isCoolingDown = false
 
     fun start() {
         if (!isListening && accelerometer != null) {
             sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
             isListening = true
-            backwardMoveCount = 0
+            moveRightCount = 0
             gravity = floatArrayOf(0f, 0f, 0f)
             isCoolingDown = false
         }
@@ -45,32 +47,30 @@ class ProximityDetector(
         gravity[1] = alpha * gravity[1] + (1f - alpha) * event.values[1]
         gravity[2] = alpha * gravity[2] + (1f - alpha) * event.values[2]
 
-        val y = event.values[1] - gravity[1]
-        val z = event.values[2] - gravity[2]
+        val x = event.values[0] - gravity[0]
         
-        // Z positive means phone accelerating towards user (pulled backwards)
-        // Y negative means phone accelerating downwards (pulled towards user if flat)
-        val threshold = 3.5f
+        // Positive X means phone accelerating to the right
+        val threshold = 3.5f * (1.5f - sensorSensitivity.coerceIn(0.1f, 1.0f))
         
-        val isMovingBackward = z > threshold || y < -threshold
+        val isMovingRight = x > threshold
         
         val now = System.currentTimeMillis()
         
-        if (isMovingBackward) {
+        if (isMovingRight) {
             if (!isCoolingDown) {
-                backwardMoveCount++
+                moveRightCount++
                 lastMoveTime = now
                 isCoolingDown = true
                 
-                if (backwardMoveCount >= 2) {
-                    onWave()
-                    backwardMoveCount = 0
+                if (moveRightCount >= 2) {
+                    onMoveRight()
+                    moveRightCount = 0
                     lastMoveTime = now
                 }
             }
         } else {
             // Reset cooldown when movement settles
-            if (isCoolingDown && z < 1.5f && y > -1.5f) {
+            if (isCoolingDown && x < 1.5f) {
                 if (now - lastMoveTime > 300) { 
                     isCoolingDown = false
                 }
@@ -78,8 +78,8 @@ class ProximityDetector(
         }
         
         // Timeout
-        if (backwardMoveCount > 0 && now - lastMoveTime > 1500) {
-            backwardMoveCount = 0
+        if (moveRightCount > 0 && now - lastMoveTime > 1500) {
+            moveRightCount = 0
             isCoolingDown = false
         }
     }

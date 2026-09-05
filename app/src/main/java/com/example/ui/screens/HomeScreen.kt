@@ -35,7 +35,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.example.Action
+import com.example.clickWithVibration
 import com.example.CompatibilityStatus
 import com.example.MainViewModel
 import com.example.ui.theme.*
@@ -109,11 +109,11 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
     val backPanelSensitivity by viewModel.backPanelSensitivity.collectAsStateWithLifecycle()
     val triggerLogs by viewModel.triggerLogs.collectAsStateWithLifecycle()
     
-    val sh by viewModel.shakeEnabled.collectAsStateWithLifecycle()
-    val prox by viewModel.proximityWaveEnabled.collectAsStateWithLifecycle()
-    val flip by viewModel.flipPhoneEnabled.collectAsStateWithLifecycle()
+    val ml by viewModel.moveLeftEnabled.collectAsStateWithLifecycle()
+    val prox by viewModel.moveBackwardEnabled.collectAsStateWithLifecycle()
+    val mr by viewModel.flipPhoneEnabled.collectAsStateWithLifecycle()
     val bp by viewModel.backPanelEnabled.collectAsStateWithLifecycle()
-    val activeCount = listOf(sh, prox, flip, bp).count { it }
+    val activeCount = listOf(ml, prox, mr, bp).count { it }
     
     val context = LocalContext.current
     var hasAllPermissions by remember { mutableStateOf(false) }
@@ -143,7 +143,7 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
     }
 
     Scaffold(
-        bottomBar = { AppBottomBar(navController) },
+        bottomBar = { AppBottomBar(navController, viewModel) },
         containerColor = DarkBackground
     ) { innerPadding ->
         LazyColumn(
@@ -163,7 +163,7 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                 ) {
                     Column {
                         Text(
-                            text = "TapTrigger",
+                            text = "Kinetix",
                             style = MaterialTheme.typography.displayLarge,
                             color = TextPrimary
                         )
@@ -174,7 +174,11 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { navController.navigate("permissions") }) {
+                        IconButton(onClick = {
+                            clickWithVibration(context, viewModel) {
+                                navController.navigate("permissions")
+                            }
+                        }) {
                             Icon(
                                 if (hasAllPermissions) Icons.Rounded.VerifiedUser else Icons.Rounded.GppBad,
                                 contentDescription = "Permissions",
@@ -201,10 +205,12 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                             else it.background(DarkSurface).border(1.dp, DividerColor, RoundedCornerShape(32.dp))
                         }
                         .clickable {
-                            if (!isEnabled && !hasAllPermissions) {
-                                navController.navigate("permissions")
-                            } else {
-                                viewModel.setEnabled(!isEnabled)
+                            clickWithVibration(context, viewModel) {
+                                if (!isEnabled && !hasAllPermissions) {
+                                    navController.navigate("permissions")
+                                } else {
+                                    viewModel.setEnabled(!isEnabled)
+                                }
                             }
                         }
                         .padding(24.dp)
@@ -229,7 +235,15 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                         }
                         Switch(
                             checked = isEnabled,
-                            onCheckedChange = null,
+                            onCheckedChange = { checked ->
+                                clickWithVibration(context, viewModel) {
+                                    if (!checked && !hasAllPermissions) {
+                                        navController.navigate("permissions")
+                                    } else {
+                                        viewModel.setEnabled(checked)
+                                    }
+                                }
+                            },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = AuroraPrimary,
                                 checkedTrackColor = Color.White,
@@ -257,7 +271,11 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
 
             // Trigger Methods
             item {
-                AuroraCard(onClick = { navController.navigate("select_trigger") }) {
+                AuroraCard(onClick = {
+                    clickWithVibration(context, viewModel) {
+                        navController.navigate("select_trigger")
+                    }
+                }) {
                     Column {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -286,25 +304,25 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            if (sh || prox || flip || bp) {
-                                if (sh) {
+                            if (ml || prox || mr || bp) {
+                                if (ml) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        GlowingIconBox(icon = Icons.Rounded.Vibration, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
+                                        GlowingIconBox(icon = Icons.Rounded.ArrowBack, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
                                     }
                                 }
                                 if (prox) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        GlowingIconBox(icon = Icons.Rounded.PanTool, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
+                                        GlowingIconBox(icon = Icons.Rounded.ArrowDownward, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
                                     }
                                 }
-                                if (flip) {
+                                if (mr) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        GlowingIconBox(icon = Icons.Rounded.ScreenRotation, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
+                                        GlowingIconBox(icon = Icons.Rounded.ArrowForward, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
                                     }
                                 }
                                 if (bp) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        GlowingIconBox(icon = Icons.Rounded.Smartphone, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
+                                        GlowingIconBox(icon = Icons.Rounded.ArrowUpward, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
                                     }
                                 }
                             } else {
@@ -414,9 +432,9 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                             triggerLogs.forEach { log ->
                                 val dateStr = android.text.format.DateFormat.format("hh:mm:ss a, MMM dd", java.util.Date(log.timestamp)).toString()
                                 val triggerDisplayName = when (log.sourceTrigger) {
-                                    "SHAKE" -> "Shake Phone"
-                                    "PROXIMITY_WAVE" -> "Proximity Wave"
-                                    "FLIP_PHONE" -> "Flip Phone"
+                                    "MOVE_LEFT" -> "Move Left"
+                                    "MOVE_BACKWARD" -> "Move Backward"
+                                    "MOVE_RIGHT_PHONE" -> "Move Right"
                                     "BACK_PANEL" -> "Move Forward"
                                     else -> log.sourceTrigger
                                 }
@@ -440,10 +458,10 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                                         ) {
                                             Icon(
                                                 imageVector = when (log.sourceTrigger) {
-                                                    "SHAKE" -> Icons.Rounded.Vibration
-                                                    "PROXIMITY_WAVE" -> Icons.Rounded.PanTool
-                                                    "FLIP_PHONE" -> Icons.Rounded.ScreenRotation
-                                                    "BACK_PANEL" -> Icons.Rounded.Smartphone
+                                                    "MOVE_LEFT" -> Icons.Rounded.ArrowBack
+                                                    "MOVE_BACKWARD" -> Icons.Rounded.ArrowDownward
+                                                    "MOVE_RIGHT_PHONE" -> Icons.Rounded.ArrowForward
+                                                    "BACK_PANEL" -> Icons.Rounded.ArrowUpward
                                                     else -> Icons.Rounded.TouchApp
                                                 },
                                                 contentDescription = null,

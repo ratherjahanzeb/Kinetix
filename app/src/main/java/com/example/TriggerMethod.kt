@@ -1,8 +1,8 @@
 package com.example
 
 enum class TriggerMethod(val displayName: String, val description: String) {
-    SHAKE("Shake Phone", "Shake your phone firmly"),
-    PROXIMITY_WAVE("Proximity Wave", "Wave hand over the top of the phone"),
-    FLIP_PHONE("Flip Phone", "Place phone face down, then face up"),
-    BACK_PANEL("Move Forward", "Move phone forward two times")
+    MOVE_LEFT("Move Left", "Move phone left 2 times"),
+    MOVE_BACKWARD("Move Backward", "Move phone backward 2 times"),
+    MOVE_RIGHT_PHONE("Move Right", "Move phone right 2 times"),
+    BACK_PANEL("Move Forward", "Move phone forward 2 times")
 }

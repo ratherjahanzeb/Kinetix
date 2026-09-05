@@ -1,6 +1,6 @@
 {
   "name": "TapTrigger",
-  "description": "Double tap fingerprint to perform actions",
+  "description": "Trigger actions by moving your phone left, right, backward, or forward",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -26,9 +26,9 @@ class DoubleTapAccessibilityService : AccessibilityService() {
     private lateinit var settingsRepo: SettingsRepository
     private var isFlashlightOn = false
     private var backTapDetector: BackTapDetector? = null
-    private var shakeDetector: ShakeDetector? = null
+    private var shakeDetector: MoveLeftDetector? = null
     private var proximityDetector: ProximityDetector? = null
-    private var flipDetector: FlipDetector? = null
+    private var flipDetector: MoveRightDetector? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -42,17 +42,17 @@ class DoubleTapAccessibilityService : AccessibilityService() {
         }, null)
 
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        shakeDetector = ShakeDetector(sensorManager) {
-            handlePotentialTap(TriggerMethod.SHAKE)
+        shakeDetector = MoveLeftDetector(sensorManager) {
+            handlePotentialTap(TriggerMethod.MOVE_LEFT)
         }
         backTapDetector = BackTapDetector(sensorManager) {
             handlePotentialTap(TriggerMethod.BACK_PANEL)
         }
         proximityDetector = ProximityDetector(sensorManager) {
-            handlePotentialTap(TriggerMethod.PROXIMITY_WAVE)
+            handlePotentialTap(TriggerMethod.MOVE_BACKWARD)
         }
-        flipDetector = FlipDetector(sensorManager) {
-            handlePotentialTap(TriggerMethod.FLIP_PHONE)
+        flipDetector = MoveRightDetector(sensorManager) {
+            handlePotentialTap(TriggerMethod.MOVE_RIGHT_PHONE)
         }
 
         scope.launch {
@@ -62,7 +62,7 @@ class DoubleTapAccessibilityService : AccessibilityService() {
         }
 
         scope.launch {
-            combine(settingsRepo.isEnabled, settingsRepo.shakeEnabled) { isEnabled, shake ->
+            combine(settingsRepo.isEnabled, settingsRepo.moveLeftEnabled) { isEnabled, shake ->
                 Pair(isEnabled, shake)
             }.collect { (isEnabled, shake) ->
                 if (isEnabled && shake) {
@@ -74,7 +74,7 @@ class DoubleTapAccessibilityService : AccessibilityService() {
         }
 
         scope.launch {
-            combine(settingsRepo.isEnabled, settingsRepo.proximityWaveEnabled) { isEnabled, proximity ->
+            combine(settingsRepo.isEnabled, settingsRepo.moveBackwardEnabled) { isEnabled, proximity ->
                 Pair(isEnabled, proximity)
             }.collect { (isEnabled, proximity) ->
                 if (isEnabled && proximity) {
@@ -147,9 +147,9 @@ class DoubleTapAccessibilityService : AccessibilityService() {
             if (!isEnabled) return@launch
             
             val isSourceEnabled = when (sourceTrigger) {
-                TriggerMethod.SHAKE -> settingsRepo.shakeEnabled.first()
-                TriggerMethod.PROXIMITY_WAVE -> settingsRepo.proximityWaveEnabled.first()
-                TriggerMethod.FLIP_PHONE -> settingsRepo.flipPhoneEnabled.first()
+                TriggerMethod.MOVE_LEFT -> settingsRepo.moveLeftEnabled.first()
+                TriggerMethod.MOVE_BACKWARD -> settingsRepo.moveBackwardEnabled.first()
+                TriggerMethod.MOVE_RIGHT_PHONE -> settingsRepo.flipPhoneEnabled.first()
                 TriggerMethod.BACK_PANEL -> settingsRepo.backPanelEnabled.first()
             }
             if (!isSourceEnabled) return@launch
@@ -170,9 +170,9 @@ class DoubleTapAccessibilityService : AccessibilityService() {
             vibrate()
         }
         val actionToExecute = when (sourceTrigger) {
-            TriggerMethod.SHAKE -> settingsRepo.shakeAction.first()
-            TriggerMethod.PROXIMITY_WAVE -> settingsRepo.proximityWaveAction.first()
-            TriggerMethod.FLIP_PHONE -> settingsRepo.flipPhoneAction.first()
+            TriggerMethod.MOVE_LEFT -> settingsRepo.moveLeftAction.first()
+            TriggerMethod.MOVE_BACKWARD -> settingsRepo.moveBackwardAction.first()
+            TriggerMethod.MOVE_RIGHT_PHONE -> settingsRepo.flipPhoneAction.first()
             TriggerMethod.BACK_PANEL -> settingsRepo.backPanelAction.first()
         }
         settingsRepo.addTriggerLog(
@@ -201,6 +201,83 @@ class DoubleTapAccessibilityService : AccessibilityService() {
                     performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
                 }
             }
+            Action.SPLIT_SCREEN -> {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    performGlobalAction(GLOBAL_ACTION_TOGGLE_SPLIT_SCREEN)
+                }
+            }
+            Action.POWER_DIALOG -> {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                    performGlobalAction(GLOBAL_ACTION_POWER_DIALOG)
+                }
+            }
+            Action.VOLUME_UP, Action.VOLUME_DOWN -> {
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+                val direction = if (action == Action.VOLUME_UP) android.media.AudioManager.ADJUST_RAISE else android.media.AudioManager.ADJUST_LOWER
+                audioManager.adjustStreamVolume(android.media.AudioManager.STREAM_MUSIC, direction, android.media.AudioManager.FLAG_SHOW_UI)
+            }
+            Action.MEDIA_PLAY_PAUSE -> {
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+                val eventTime = System.currentTimeMillis()
+                val downEvent = KeyEvent(eventTime, eventTime, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 0)
+                val upEvent = KeyEvent(eventTime, eventTime, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 0)
+                try {
+                    audioManager.dispatchMediaKeyEvent(downEvent)
+                    audioManager.dispatchMediaKeyEvent(upEvent)
+                } catch (e: Exception) {
+                    Log.e("AccessibilityService", "Error dispatching media key", e)
+                }
+            }
+            Action.BACK -> performGlobalAction(GLOBAL_ACTION_BACK)
+            Action.NEXT_TRACK, Action.PREV_TRACK -> {
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+                val keyCode = if (action == Action.NEXT_TRACK) KeyEvent.KEYCODE_MEDIA_NEXT else KeyEvent.KEYCODE_MEDIA_PREVIOUS
+                val eventTime = System.currentTimeMillis()
+                val downEvent = KeyEvent(eventTime, eventTime, KeyEvent.ACTION_DOWN, keyCode, 0)
+                val upEvent = KeyEvent(eventTime, eventTime, KeyEvent.ACTION_UP, keyCode, 0)
+                try {
+                    audioManager.dispatchMediaKeyEvent(downEvent)
+                    audioManager.dispatchMediaKeyEvent(upEvent)
+                } catch (e: Exception) {
+                    Log.e("AccessibilityService", "Error dispatching media key", e)
+                }
+            }
+            Action.MUTE_AUDIO -> {
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+                audioManager.adjustStreamVolume(android.media.AudioManager.STREAM_MUSIC, android.media.AudioManager.ADJUST_MUTE, android.media.AudioManager.FLAG_SHOW_UI)
+            }
+            Action.RINGER_SILENT, Action.RINGER_NORMAL, Action.RINGER_VIBRATE -> {
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+                val mode = when (action) {
+                    Action.RINGER_SILENT -> android.media.AudioManager.RINGER_MODE_SILENT
+                    Action.RINGER_NORMAL -> android.media.AudioManager.RINGER_MODE_NORMAL
+                    else -> android.media.AudioManager.RINGER_MODE_VIBRATE
+                }
+                try {
+                    audioManager.ringerMode = mode
+                } catch (e: Exception) {
+                    Log.e("AccessibilityService", "Error setting ringer mode", e)
+                }
+            }
+            Action.BRIGHTNESS_UP, Action.BRIGHTNESS_DOWN -> {
+                try {
+                    if (android.provider.Settings.System.canWrite(this)) {
+                        val cr = contentResolver
+                        var currentBrightness = android.provider.Settings.System.getInt(cr, android.provider.Settings.System.SCREEN_BRIGHTNESS)
+                        val step = 25
+                        currentBrightness = if (action == Action.BRIGHTNESS_UP) {
+                            (currentBrightness + step).coerceAtMost(255)
+                        } else {
+                            (currentBrightness - step).coerceAtLeast(10)
+                        }
+                        android.provider.Settings.System.putInt(cr, android.provider.Settings.System.SCREEN_BRIGHTNESS, currentBrightness)
+                    } else {
+                        performGlobalAction(GLOBAL_ACTION_QUICK_SETTINGS)
+                    }
+                } catch (e: Exception) {
+                    Log.e("AccessibilityService", "Error adjusting brightness", e)
+                }
+            }
             Action.FLASHLIGHT -> toggleFlashlight()
             Action.OPEN_APP -> openApp(sourceTrigger)
             Action.NONE -> {}
@@ -209,9 +286,9 @@ class DoubleTapAccessibilityService : AccessibilityService() {
 
     private suspend fun openApp(sourceTrigger: TriggerMethod) {
         val packageName = when (sourceTrigger) {
-            TriggerMethod.SHAKE -> settingsRepo.shakeAppPackage.first()
-            TriggerMethod.PROXIMITY_WAVE -> settingsRepo.proximityWaveAppPackage.first()
-            TriggerMethod.FLIP_PHONE -> settingsRepo.flipPhoneAppPackage.first()
+            TriggerMethod.MOVE_LEFT -> settingsRepo.moveLeftAppPackage.first()
+            TriggerMethod.MOVE_BACKWARD -> settingsRepo.moveBackwardAppPackage.first()
+            TriggerMethod.MOVE_RIGHT_PHONE -> settingsRepo.flipPhoneAppPackage.first()
             TriggerMethod.BACK_PANEL -> settingsRepo.backPanelAppPackage.first()
         }
         if (!packageName.isNullOrEmpty()) {

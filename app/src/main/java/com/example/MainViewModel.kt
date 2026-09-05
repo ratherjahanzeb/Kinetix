@@ -23,10 +23,10 @@ class MainViewModel(
         val selectedAction: StateFlow<Action> = settingsRepo.selectedAction
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Action.NONE)
         
-    val shakeAction: StateFlow<Action> = settingsRepo.shakeAction
+    val moveLeftAction: StateFlow<Action> = settingsRepo.moveLeftAction
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Action.HOME)
         
-    val proximityWaveAction: StateFlow<Action> = settingsRepo.proximityWaveAction
+    val moveBackwardAction: StateFlow<Action> = settingsRepo.moveBackwardAction
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Action.FLASHLIGHT)
         
     val flipPhoneAction: StateFlow<Action> = settingsRepo.flipPhoneAction
@@ -35,10 +35,10 @@ class MainViewModel(
     val backPanelAction: StateFlow<Action> = settingsRepo.backPanelAction
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Action.SCREENSHOT)
         
-    val shakeAppPackage: StateFlow<String?> = settingsRepo.shakeAppPackage
+    val moveLeftAppPackage: StateFlow<String?> = settingsRepo.moveLeftAppPackage
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
         
-    val proximityWaveAppPackage: StateFlow<String?> = settingsRepo.proximityWaveAppPackage
+    val moveBackwardAppPackage: StateFlow<String?> = settingsRepo.moveBackwardAppPackage
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
         
     val flipPhoneAppPackage: StateFlow<String?> = settingsRepo.flipPhoneAppPackage
@@ -53,9 +53,9 @@ class MainViewModel(
     val onboardingCompleted: StateFlow<Boolean?> = settingsRepo.onboardingCompleted
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val shakeEnabled: StateFlow<Boolean> = settingsRepo.shakeEnabled
+    val moveLeftEnabled: StateFlow<Boolean> = settingsRepo.moveLeftEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-    val proximityWaveEnabled: StateFlow<Boolean> = settingsRepo.proximityWaveEnabled
+    val moveBackwardEnabled: StateFlow<Boolean> = settingsRepo.moveBackwardEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val flipPhoneEnabled: StateFlow<Boolean> = settingsRepo.flipPhoneEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
@@ -87,7 +87,7 @@ class MainViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val activeTrigger: StateFlow<TriggerMethod> = settingsRepo.activeTrigger
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TriggerMethod.SHAKE)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TriggerMethod.MOVE_LEFT)
 
     var compatibilityStatus: CompatibilityStatus = compatibilityChecker.checkCompatibility()
         private set

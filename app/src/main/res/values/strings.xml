@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">TapTrigger</string>
-    <string name="accessibility_service_description">Used to detect double taps on the fingerprint sensor and execute configured actions. No personal data is collected.</string>
+    <string name="accessibility_service_description">Used to detect device movements (left, right, backward, forward) and execute configured actions. No personal data is collected.</string>
 </resources>

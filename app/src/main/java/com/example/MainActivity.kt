@@ -70,10 +70,10 @@ fun MainApp(viewModel: MainViewModel) {
         navController = navController,
         startDestination = "splash",
         modifier = Modifier.fillMaxSize(),
-        enterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(500)) },
-        exitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(500)) },
-        popEnterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(500)) },
-        popExitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(500)) }
+        enterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(400)) + androidx.compose.animation.scaleIn(initialScale = 0.92f, animationSpec = androidx.compose.animation.core.tween(400)) },
+        exitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(400)) + androidx.compose.animation.scaleOut(targetScale = 1.08f, animationSpec = androidx.compose.animation.core.tween(400)) },
+        popEnterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(400)) + androidx.compose.animation.scaleIn(initialScale = 1.08f, animationSpec = androidx.compose.animation.core.tween(400)) },
+        popExitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(400)) + androidx.compose.animation.scaleOut(targetScale = 0.92f, animationSpec = androidx.compose.animation.core.tween(400)) }
     ) {
         composable("splash") {
             com.example.ui.screens.SplashScreen(viewModel, navController, onboardingCompleted)
@@ -83,13 +83,13 @@ fun MainApp(viewModel: MainViewModel) {
         composable("settings") { SettingsScreen(viewModel, navController) }
         composable("select_trigger") { com.example.ui.screens.TriggerSelectionScreen(viewModel, navController) }
                 composable("select_action/{trigger}") { backStackEntry ->
-            val triggerString = backStackEntry.arguments?.getString("trigger") ?: TriggerMethod.SHAKE.name
-            val trigger = try { TriggerMethod.valueOf(triggerString) } catch (e: Exception) { TriggerMethod.SHAKE }
+            val triggerString = backStackEntry.arguments?.getString("trigger") ?: TriggerMethod.MOVE_LEFT.name
+            val trigger = try { TriggerMethod.valueOf(triggerString) } catch (e: Exception) { TriggerMethod.MOVE_LEFT }
             ActionSelectionScreen(viewModel, navController, trigger)
         }
         composable("select_app/{trigger}") { backStackEntry ->
-            val triggerString = backStackEntry.arguments?.getString("trigger") ?: TriggerMethod.SHAKE.name
-            val trigger = try { TriggerMethod.valueOf(triggerString) } catch (e: Exception) { TriggerMethod.SHAKE }
+            val triggerString = backStackEntry.arguments?.getString("trigger") ?: TriggerMethod.MOVE_LEFT.name
+            val trigger = try { TriggerMethod.valueOf(triggerString) } catch (e: Exception) { TriggerMethod.MOVE_LEFT }
             com.example.ui.screens.AppSelectionScreen(viewModel, navController, trigger)
         }
         composable("compatibility") { CompatibilityScreen(viewModel, navController) }

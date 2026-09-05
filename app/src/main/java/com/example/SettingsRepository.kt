@@ -21,20 +21,20 @@ class SettingsRepository(private val context: Context) {
         val TIMEOUT_MS = intPreferencesKey("timeout_ms")
                 val SELECTED_ACTION = stringPreferencesKey("selected_action")
         
-        val SHAKE_ACTION = stringPreferencesKey("shake_action")
-        val PROXIMITY_WAVE_ACTION = stringPreferencesKey("proximity_wave_action")
-        val FLIP_PHONE_ACTION = stringPreferencesKey("flip_phone_action")
+        val MOVE_LEFT_ACTION = stringPreferencesKey("move_left_action")
+        val MOVE_BACKWARD_ACTION = stringPreferencesKey("move_backward_action")
+        val MOVE_RIGHT_PHONE_ACTION = stringPreferencesKey("flip_phone_action")
         val BACK_PANEL_ACTION = stringPreferencesKey("back_panel_action")
         
-        val SHAKE_APP_PACKAGE = stringPreferencesKey("shake_app_package")
-        val PROXIMITY_WAVE_APP_PACKAGE = stringPreferencesKey("proximity_wave_app_package")
-        val FLIP_PHONE_APP_PACKAGE = stringPreferencesKey("flip_phone_app_package")
+        val MOVE_LEFT_APP_PACKAGE = stringPreferencesKey("move_left_app_package")
+        val MOVE_BACKWARD_APP_PACKAGE = stringPreferencesKey("move_backward_app_package")
+        val MOVE_RIGHT_PHONE_APP_PACKAGE = stringPreferencesKey("flip_phone_app_package")
         val BACK_PANEL_APP_PACKAGE = stringPreferencesKey("back_panel_app_package")
         
         val ACTIVE_TRIGGER = stringPreferencesKey("active_trigger")
-        val SHAKE_ENABLED = booleanPreferencesKey("shake_enabled")
-        val PROXIMITY_WAVE_ENABLED = booleanPreferencesKey("proximity_wave_enabled")
-        val FLIP_PHONE_ENABLED = booleanPreferencesKey("flip_phone_enabled")
+        val MOVE_LEFT_ENABLED = booleanPreferencesKey("move_left_enabled")
+        val MOVE_BACKWARD_ENABLED = booleanPreferencesKey("move_backward_enabled")
+        val MOVE_RIGHT_PHONE_ENABLED = booleanPreferencesKey("flip_phone_enabled")
         val BACK_PANEL_ENABLED = booleanPreferencesKey("back_panel_enabled")
         val START_ON_BOOT = booleanPreferencesKey("start_on_boot")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
@@ -68,18 +68,18 @@ class SettingsRepository(private val context: Context) {
         try { Action.valueOf(actionName) } catch (e: Exception) { Action.NONE }
     }
     
-    val shakeAction: Flow<Action> = context.dataStore.data.map { preferences ->
-        val actionName = preferences[SHAKE_ACTION] ?: Action.NONE.name
+    val moveLeftAction: Flow<Action> = context.dataStore.data.map { preferences ->
+        val actionName = preferences[MOVE_LEFT_ACTION] ?: Action.NONE.name
         try { Action.valueOf(actionName) } catch (e: Exception) { Action.NONE }
     }
     
-    val proximityWaveAction: Flow<Action> = context.dataStore.data.map { preferences ->
-        val actionName = preferences[PROXIMITY_WAVE_ACTION] ?: Action.NONE.name
+    val moveBackwardAction: Flow<Action> = context.dataStore.data.map { preferences ->
+        val actionName = preferences[MOVE_BACKWARD_ACTION] ?: Action.NONE.name
         try { Action.valueOf(actionName) } catch (e: Exception) { Action.NONE }
     }
     
     val flipPhoneAction: Flow<Action> = context.dataStore.data.map { preferences ->
-        val actionName = preferences[FLIP_PHONE_ACTION] ?: Action.NONE.name
+        val actionName = preferences[MOVE_RIGHT_PHONE_ACTION] ?: Action.NONE.name
         try { Action.valueOf(actionName) } catch (e: Exception) { Action.NONE }
     }
     
@@ -88,19 +88,19 @@ class SettingsRepository(private val context: Context) {
         try { Action.valueOf(actionName) } catch (e: Exception) { Action.NONE }
     }
     
-    val shakeAppPackage: Flow<String?> = context.dataStore.data.map { it[SHAKE_APP_PACKAGE] }
-    val proximityWaveAppPackage: Flow<String?> = context.dataStore.data.map { it[PROXIMITY_WAVE_APP_PACKAGE] }
-    val flipPhoneAppPackage: Flow<String?> = context.dataStore.data.map { it[FLIP_PHONE_APP_PACKAGE] }
+    val moveLeftAppPackage: Flow<String?> = context.dataStore.data.map { it[MOVE_LEFT_APP_PACKAGE] }
+    val moveBackwardAppPackage: Flow<String?> = context.dataStore.data.map { it[MOVE_BACKWARD_APP_PACKAGE] }
+    val flipPhoneAppPackage: Flow<String?> = context.dataStore.data.map { it[MOVE_RIGHT_PHONE_APP_PACKAGE] }
     val backPanelAppPackage: Flow<String?> = context.dataStore.data.map { it[BACK_PANEL_APP_PACKAGE] }
     
-    val shakeEnabled: Flow<Boolean> = context.dataStore.data.map { it[SHAKE_ENABLED] ?: true }
-    val proximityWaveEnabled: Flow<Boolean> = context.dataStore.data.map { it[PROXIMITY_WAVE_ENABLED] ?: true }
-    val flipPhoneEnabled: Flow<Boolean> = context.dataStore.data.map { it[FLIP_PHONE_ENABLED] ?: true }
+    val moveLeftEnabled: Flow<Boolean> = context.dataStore.data.map { it[MOVE_LEFT_ENABLED] ?: true }
+    val moveBackwardEnabled: Flow<Boolean> = context.dataStore.data.map { it[MOVE_BACKWARD_ENABLED] ?: true }
+    val flipPhoneEnabled: Flow<Boolean> = context.dataStore.data.map { it[MOVE_RIGHT_PHONE_ENABLED] ?: true }
     val backPanelEnabled: Flow<Boolean> = context.dataStore.data.map { it[BACK_PANEL_ENABLED] ?: true }
 
     val activeTrigger: Flow<TriggerMethod> = context.dataStore.data.map { preferences ->
-        val triggerName = preferences[ACTIVE_TRIGGER] ?: TriggerMethod.SHAKE.name
-        try { TriggerMethod.valueOf(triggerName) } catch (e: Exception) { TriggerMethod.SHAKE }
+        val triggerName = preferences[ACTIVE_TRIGGER] ?: TriggerMethod.MOVE_LEFT.name
+        try { TriggerMethod.valueOf(triggerName) } catch (e: Exception) { TriggerMethod.MOVE_LEFT }
     }
     
     val startOnBoot: Flow<Boolean> = context.dataStore.data.map { it[START_ON_BOOT] ?: false }
@@ -143,17 +143,17 @@ class SettingsRepository(private val context: Context) {
     suspend fun setTimeoutMs(timeout: Int) { context.dataStore.edit { it[TIMEOUT_MS] = timeout } }
         suspend fun setSelectedAction(action: Action) { context.dataStore.edit { it[SELECTED_ACTION] = action.name } }
     
-    suspend fun setShakeAction(action: Action) { context.dataStore.edit { it[SHAKE_ACTION] = action.name } }
-    suspend fun setProximityWaveAction(action: Action) { context.dataStore.edit { it[PROXIMITY_WAVE_ACTION] = action.name } }
-    suspend fun setFlipPhoneAction(action: Action) { context.dataStore.edit { it[FLIP_PHONE_ACTION] = action.name } }
+    suspend fun setShakeAction(action: Action) { context.dataStore.edit { it[MOVE_LEFT_ACTION] = action.name } }
+    suspend fun setProximityWaveAction(action: Action) { context.dataStore.edit { it[MOVE_BACKWARD_ACTION] = action.name } }
+    suspend fun setFlipPhoneAction(action: Action) { context.dataStore.edit { it[MOVE_RIGHT_PHONE_ACTION] = action.name } }
     suspend fun setBackPanelAction(action: Action) { context.dataStore.edit { it[BACK_PANEL_ACTION] = action.name } }
-    suspend fun setShakeAppPackage(pkg: String) { context.dataStore.edit { it[SHAKE_APP_PACKAGE] = pkg } }
-    suspend fun setProximityWaveAppPackage(pkg: String) { context.dataStore.edit { it[PROXIMITY_WAVE_APP_PACKAGE] = pkg } }
-    suspend fun setFlipPhoneAppPackage(pkg: String) { context.dataStore.edit { it[FLIP_PHONE_APP_PACKAGE] = pkg } }
+    suspend fun setShakeAppPackage(pkg: String) { context.dataStore.edit { it[MOVE_LEFT_APP_PACKAGE] = pkg } }
+    suspend fun setProximityWaveAppPackage(pkg: String) { context.dataStore.edit { it[MOVE_BACKWARD_APP_PACKAGE] = pkg } }
+    suspend fun setFlipPhoneAppPackage(pkg: String) { context.dataStore.edit { it[MOVE_RIGHT_PHONE_APP_PACKAGE] = pkg } }
     suspend fun setBackPanelAppPackage(pkg: String) { context.dataStore.edit { it[BACK_PANEL_APP_PACKAGE] = pkg } }
-    suspend fun setShakeEnabled(enabled: Boolean) { context.dataStore.edit { it[SHAKE_ENABLED] = enabled } }
-    suspend fun setProximityWaveEnabled(enabled: Boolean) { context.dataStore.edit { it[PROXIMITY_WAVE_ENABLED] = enabled } }
-    suspend fun setFlipPhoneEnabled(enabled: Boolean) { context.dataStore.edit { it[FLIP_PHONE_ENABLED] = enabled } }
+    suspend fun setShakeEnabled(enabled: Boolean) { context.dataStore.edit { it[MOVE_LEFT_ENABLED] = enabled } }
+    suspend fun setProximityWaveEnabled(enabled: Boolean) { context.dataStore.edit { it[MOVE_BACKWARD_ENABLED] = enabled } }
+    suspend fun setFlipPhoneEnabled(enabled: Boolean) { context.dataStore.edit { it[MOVE_RIGHT_PHONE_ENABLED] = enabled } }
     suspend fun setBackPanelEnabled(enabled: Boolean) { context.dataStore.edit { it[BACK_PANEL_ENABLED] = enabled } }
 
     suspend fun setActiveTrigger(trigger: TriggerMethod) { context.dataStore.edit { it[ACTIVE_TRIGGER] = trigger.name } }

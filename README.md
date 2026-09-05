@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ TapTrigger
+# ⚡ Kinetix
 
 ### *Lightning-Fast Custom Gesture & Motion Triggers for Android*
 
@@ -13,21 +13,20 @@
 
 ---
 
-## 📱 About **TapTrigger**
+## 📱 About **Kinetix**
 
-**TapTrigger** is a powerful, lightweight, and open-source Android utility app that transforms everyday device movements and gestures into instant shortcuts. Whether you want to toggle your flashlight with a quick shake, capture a screenshot with a proximity wave, or pull down your notification shade by flipping your phone, TapTrigger puts device control right at your fingertips.
+**Kinetix** is a powerful, lightweight, and open-source Android utility app that transforms everyday device movements and gestures into instant shortcuts. Whether you want to toggle your flashlight with a quick motion, capture a screenshot with a proximity wave, or pull down your notification shade by moving your phone, Kinetix puts device control right at your fingertips.
 
-Built natively in **Kotlin** and **Jetpack Compose**, TapTrigger adheres to modern **Material Design 3** principles with a gorgeous, high-contrast dark theme, fluid animations, and battery-efficient background sensor monitoring.
+Built natively in **Kotlin** and **Jetpack Compose**, Kinetix adheres to modern **Material Design 3** principles with a gorgeous, high-contrast dark theme, fluid animations, immersive sound effects on launch, and battery-efficient background sensor monitoring.
 
 ---
 
 ## ✨ Key Features
 
 ### 🖐️ Advanced Motion & Gesture Detectors
-*   **Shake Phone**: Firmly shake your device to trigger custom actions.
+*   **Move Left / Right / Backward / Forward**: Customize triggers based on 3-axis accelerometer and proximity sensors.
 *   **Proximity Wave**: Wave your hand over the proximity sensor to execute shortcuts.
 *   **Flip Phone**: Place your device face down and back up to trigger functions.
-*   **Back Panel / Motion Gesture**: Move your phone forward in quick succession.
 
 ### ⚡ Instant Actions Library
 *   🏠 **Go Home**: Instantly return to the home screen.
@@ -40,7 +39,8 @@ Built natively in **Kotlin** and **Jetpack Compose**, TapTrigger adheres to mode
 *   🚀 **Open App**: Launch any installed application on your device.
 
 ### 🎨 Modern UI & Experience
-*   **Material Design 3**: Polished cards, dynamic states, and intuitive toggles.
+*   **Material Design 3 & Themes**: Choose between System, Light, Dark, or AMOLED theme modes, along with custom accent color palettes.
+*   **Audio & Haptics**: Immersive procedural "shooo" sound effects on startup and tactile vibration feedback.
 *   **Battery Efficient**: Intelligent sensor listening lifecycle management that minimizes power consumption.
 *   **Accessibility Integration**: Leverages accessibility services for robust system-level actions.
 
@@ -54,10 +54,6 @@ Built natively in **Kotlin** and **Jetpack Compose**, TapTrigger adheres to mode
 *   **Architecture**: MVVM (Model-View-ViewModel) with reactive state management
 *   **Sensors**: Android Hardware Sensor Manager (Accelerometer, Proximity)
 *   **System Integration**: Accessibility Services & Intent Launchers
-
----
-
-  
 
 ---
 

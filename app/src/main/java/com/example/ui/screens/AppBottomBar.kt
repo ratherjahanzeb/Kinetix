@@ -18,10 +18,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.ui.theme.DarkBackground
 import com.example.ui.theme.AuroraSecondary
 
+import androidx.compose.ui.platform.LocalContext
+import com.example.MainViewModel
+import com.example.clickWithVibration
+
 @Composable
-fun AppBottomBar(navController: NavController) {
+fun AppBottomBar(navController: NavController, viewModel: MainViewModel? = null) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val context = LocalContext.current
 
     NavigationBar(
         containerColor = DarkBackground,
@@ -32,10 +37,12 @@ fun AppBottomBar(navController: NavController) {
             label = { Text("Home") },
             selected = currentDestination?.hierarchy?.any { it.route == "home" } == true,
             onClick = {
-                navController.navigate("home") {
-                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                    launchSingleTop = true
-                    restoreState = true
+                clickWithVibration(context, viewModel) {
+                    navController.navigate("home") {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
             },
             colors = NavigationBarItemDefaults.colors(
@@ -51,10 +58,12 @@ fun AppBottomBar(navController: NavController) {
             label = { Text("Settings") },
             selected = currentDestination?.hierarchy?.any { it.route == "settings" } == true,
             onClick = {
-                navController.navigate("settings") {
-                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                    launchSingleTop = true
-                    restoreState = true
+                clickWithVibration(context, viewModel) {
+                    navController.navigate("settings") {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
             },
             colors = NavigationBarItemDefaults.colors(

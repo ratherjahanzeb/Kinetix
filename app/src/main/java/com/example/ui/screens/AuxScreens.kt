@@ -42,6 +42,7 @@ import androidx.navigation.NavController
 import com.example.Action
 import com.example.MainViewModel
 import com.example.TriggerMethod
+import com.example.clickWithVibration
 import com.example.ui.theme.*
 import android.graphics.Bitmap
 import androidx.core.graphics.drawable.toBitmap
@@ -83,14 +84,15 @@ fun SectionHeader(title: String) {
 
 @Composable
 fun TriggerSelectionScreen(viewModel: MainViewModel, navController: NavController) {
-    val shakeEnabled by viewModel.shakeEnabled.collectAsStateWithLifecycle()
-    val proximityWaveEnabled by viewModel.proximityWaveEnabled.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val moveLeftEnabled by viewModel.moveLeftEnabled.collectAsStateWithLifecycle()
+    val moveBackwardEnabled by viewModel.moveBackwardEnabled.collectAsStateWithLifecycle()
     val flipPhoneEnabled by viewModel.flipPhoneEnabled.collectAsStateWithLifecycle()
     val backPanelEnabled by viewModel.backPanelEnabled.collectAsStateWithLifecycle()
     
-    val shAction by viewModel.shakeAction.collectAsStateWithLifecycle()
-    val proxAction by viewModel.proximityWaveAction.collectAsStateWithLifecycle()
-    val flipAction by viewModel.flipPhoneAction.collectAsStateWithLifecycle()
+    val shAction by viewModel.moveLeftAction.collectAsStateWithLifecycle()
+    val proxAction by viewModel.moveBackwardAction.collectAsStateWithLifecycle()
+    val moveRightAction by viewModel.flipPhoneAction.collectAsStateWithLifecycle()
     val bpAction by viewModel.backPanelAction.collectAsStateWithLifecycle()
     
     val compatibility = viewModel.compatibilityStatus
@@ -108,47 +110,71 @@ fun TriggerSelectionScreen(viewModel: MainViewModel, navController: NavControlle
             SectionHeader("AVAILABLE SENSORS")
             
             TriggerItem(
-                trigger = TriggerMethod.SHAKE,
-                icon = Icons.Rounded.Vibration,
-                isChecked = shakeEnabled,
-                isSupported = compatibility.hasAccelerometer,
-                statusText = if (compatibility.hasAccelerometer) "Supported (Uses motion sensors)" else "Unsupported (No accelerometer)",
+                trigger = TriggerMethod.MOVE_LEFT,
+                icon = Icons.Rounded.ArrowBack,
+                isChecked = moveLeftEnabled,
                 selectedAction = shAction,
-                onCheckedChange = { viewModel.setShakeEnabled(it) },
-                onClick = { navController.navigate("select_action/${TriggerMethod.SHAKE.name}") }
+                onCheckedChange = { checked ->
+                    clickWithVibration(context, viewModel) {
+                        viewModel.setShakeEnabled(checked)
+                    }
+                },
+                onClick = {
+                    clickWithVibration(context, viewModel) {
+                        navController.navigate("select_action/${TriggerMethod.MOVE_LEFT.name}")
+                    }
+                }
             )
             
             TriggerItem(
-                trigger = TriggerMethod.PROXIMITY_WAVE,
-                icon = Icons.Rounded.PanTool,
-                isChecked = proximityWaveEnabled,
-                isSupported = compatibility.hasProximitySensor,
-                statusText = if (compatibility.hasProximitySensor) "Supported (Uses proximity sensor)" else "Unsupported (No proximity sensor)",
+                trigger = TriggerMethod.MOVE_BACKWARD,
+                icon = Icons.Rounded.ArrowDownward,
+                isChecked = moveBackwardEnabled,
                 selectedAction = proxAction,
-                onCheckedChange = { viewModel.setProximityWaveEnabled(it) },
-                onClick = { navController.navigate("select_action/${TriggerMethod.PROXIMITY_WAVE.name}") }
+                onCheckedChange = { checked ->
+                    clickWithVibration(context, viewModel) {
+                        viewModel.setProximityWaveEnabled(checked)
+                    }
+                },
+                onClick = {
+                    clickWithVibration(context, viewModel) {
+                        navController.navigate("select_action/${TriggerMethod.MOVE_BACKWARD.name}")
+                    }
+                }
             )
             
             TriggerItem(
-                trigger = TriggerMethod.FLIP_PHONE,
-                icon = Icons.Rounded.ScreenRotation,
+                trigger = TriggerMethod.MOVE_RIGHT_PHONE,
+                icon = Icons.Rounded.ArrowForward,
                 isChecked = flipPhoneEnabled,
-                isSupported = compatibility.hasAccelerometer,
-                statusText = if (compatibility.hasAccelerometer) "Supported (Uses motion sensors)" else "Unsupported (No accelerometer)",
-                selectedAction = flipAction,
-                onCheckedChange = { viewModel.setFlipPhoneEnabled(it) },
-                onClick = { navController.navigate("select_action/${TriggerMethod.FLIP_PHONE.name}") }
+                selectedAction = moveRightAction,
+                onCheckedChange = { checked ->
+                    clickWithVibration(context, viewModel) {
+                        viewModel.setFlipPhoneEnabled(checked)
+                    }
+                },
+                onClick = {
+                    clickWithVibration(context, viewModel) {
+                        navController.navigate("select_action/${TriggerMethod.MOVE_RIGHT_PHONE.name}")
+                    }
+                }
             )
             
             TriggerItem(
                 trigger = TriggerMethod.BACK_PANEL,
-                icon = Icons.Rounded.Smartphone,
+                icon = Icons.Rounded.ArrowUpward,
                 isChecked = backPanelEnabled,
-                isSupported = compatibility.hasAccelerometer,
-                statusText = if (compatibility.hasAccelerometer) "Supported (Uses motion sensors)" else "Unsupported (No accelerometer)",
                 selectedAction = bpAction,
-                onCheckedChange = { viewModel.setBackPanelEnabled(it) },
-                onClick = { navController.navigate("select_action/${TriggerMethod.BACK_PANEL.name}") }
+                onCheckedChange = { checked ->
+                    clickWithVibration(context, viewModel) {
+                        viewModel.setBackPanelEnabled(checked)
+                    }
+                },
+                onClick = {
+                    clickWithVibration(context, viewModel) {
+                        navController.navigate("select_action/${TriggerMethod.BACK_PANEL.name}")
+                    }
+                }
             )
             Spacer(modifier = Modifier.height(24.dp))
         }
@@ -160,8 +186,6 @@ fun TriggerItem(
     trigger: TriggerMethod,
     icon: ImageVector,
     isChecked: Boolean,
-    isSupported: Boolean,
-    statusText: String,
     selectedAction: Action,
     onCheckedChange: (Boolean) -> Unit,
     onClick: () -> Unit
@@ -179,8 +203,8 @@ fun TriggerItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .clip(RoundedCornerShape(20.dp))
-            .clickable(enabled = isSupported, onClick = onClick)
-            .let { if (!isSupported) it.background(Color.Transparent) else it.background(containerColor) }
+            .clickable(onClick = onClick)
+            .background(containerColor)
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -188,17 +212,17 @@ fun TriggerItem(
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(if (isSupported) (if (isChecked) AuroraSecondary else DarkSurface) else DarkBackground),
+                .background(if (isChecked) AuroraSecondary else DarkSurface),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = if (isSupported) (if (isChecked) Color.White else TextPrimary) else TextSecondary)
+            Icon(icon, contentDescription = null, tint = if (isChecked) Color.White else TextPrimary)
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = trigger.displayName,
                 style = MaterialTheme.typography.titleMedium,
-                color = if (isSupported) TextPrimary else TextSecondary
+                color = TextPrimary
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
@@ -210,37 +234,30 @@ fun TriggerItem(
             Text(
                 text = "Action: ${selectedAction.displayName}",
                 style = MaterialTheme.typography.labelLarge,
-                color = if (isSupported) AuroraPrimary else TextSecondary
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = statusText,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (isSupported) (if (statusText.startsWith("Restricted")) Color(0xFFFFB300) else AuroraSecondary) else ErrorRed
+                color = AuroraPrimary
             )
         }
-        if (isSupported) {
-            Switch(
-                checked = isChecked,
-                onCheckedChange = onCheckedChange,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = AuroraSecondary,
-                    uncheckedThumbColor = TextSecondary,
-                    uncheckedTrackColor = DarkSurface,
-                    uncheckedBorderColor = DividerColor
-                )
+        Switch(
+            checked = isChecked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = AuroraSecondary,
+                uncheckedThumbColor = TextSecondary,
+                uncheckedTrackColor = DarkSurface,
+                uncheckedBorderColor = DividerColor
             )
-        }
+        )
     }
 }
 
 @Composable
 fun ActionSelectionScreen(viewModel: MainViewModel, navController: NavController, triggerMethod: TriggerMethod) {
+    val context = LocalContext.current
     val selectedAction by when (triggerMethod) {
-        TriggerMethod.SHAKE -> viewModel.shakeAction.collectAsStateWithLifecycle()
-        TriggerMethod.PROXIMITY_WAVE -> viewModel.proximityWaveAction.collectAsStateWithLifecycle()
-        TriggerMethod.FLIP_PHONE -> viewModel.flipPhoneAction.collectAsStateWithLifecycle()
+        TriggerMethod.MOVE_LEFT -> viewModel.moveLeftAction.collectAsStateWithLifecycle()
+        TriggerMethod.MOVE_BACKWARD -> viewModel.moveBackwardAction.collectAsStateWithLifecycle()
+        TriggerMethod.MOVE_RIGHT_PHONE -> viewModel.flipPhoneAction.collectAsStateWithLifecycle()
         TriggerMethod.BACK_PANEL -> viewModel.backPanelAction.collectAsStateWithLifecycle()
     }
     
@@ -254,37 +271,62 @@ fun ActionSelectionScreen(viewModel: MainViewModel, navController: NavController
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            SectionHeader("SYSTEM ACTIONS")
-            
-            Action.values().forEach { action ->
-                val icon = when (action) {
-                    Action.HOME -> Icons.Rounded.Home
-                    Action.RECENTS -> Icons.Rounded.ViewAgenda
-                    Action.NOTIFICATIONS -> Icons.Rounded.Notifications
-                    Action.QUICK_SETTINGS -> Icons.Rounded.Settings
-                    Action.SCREENSHOT -> Icons.Rounded.Screenshot
-                    Action.LOCK_SCREEN -> Icons.Rounded.Lock
-                    Action.FLASHLIGHT -> Icons.Rounded.FlashlightOn
-                    Action.OPEN_APP -> Icons.Rounded.Apps
-                    Action.NONE -> Icons.Rounded.Block
-                }
-                
-                ActionItem(
-                    action = action,
-                    icon = icon,
-                    isSelected = selectedAction == action,
-                    onClick = { 
-                        when (triggerMethod) {
-                            TriggerMethod.SHAKE -> viewModel.setShakeAction(action)
-                            TriggerMethod.PROXIMITY_WAVE -> viewModel.setProximityWaveAction(action)
-                            TriggerMethod.FLIP_PHONE -> viewModel.setFlipPhoneAction(action)
-                            TriggerMethod.BACK_PANEL -> viewModel.setBackPanelAction(action)
-                        }
-                        if (action == Action.OPEN_APP) {
-                            navController.navigate("select_app/${triggerMethod.name}")
-                        }
+            val categories = listOf(
+                "GENERAL" to listOf(Action.NONE, Action.OPEN_APP),
+                "SYSTEM & NAVIGATION" to listOf(Action.HOME, Action.BACK, Action.RECENTS, Action.NOTIFICATIONS, Action.QUICK_SETTINGS, Action.SPLIT_SCREEN, Action.SCREENSHOT, Action.LOCK_SCREEN, Action.POWER_DIALOG, Action.FLASHLIGHT),
+                "MEDIA & PLAYBACK" to listOf(Action.MEDIA_PLAY_PAUSE, Action.NEXT_TRACK, Action.PREV_TRACK),
+                "VOLUME & AUDIO" to listOf(Action.VOLUME_UP, Action.VOLUME_DOWN, Action.MUTE_AUDIO, Action.RINGER_NORMAL, Action.RINGER_VIBRATE, Action.RINGER_SILENT),
+                "DISPLAY & BRIGHTNESS" to listOf(Action.BRIGHTNESS_UP, Action.BRIGHTNESS_DOWN)
+            )
+
+            categories.forEach { (categoryName, actions) ->
+                SectionHeader(categoryName)
+                actions.forEach { action ->
+                    val icon = when (action) {
+                        Action.HOME -> Icons.Rounded.Home
+                        Action.RECENTS -> Icons.Rounded.ViewAgenda
+                        Action.NOTIFICATIONS -> Icons.Rounded.Notifications
+                        Action.QUICK_SETTINGS -> Icons.Rounded.Settings
+                        Action.SCREENSHOT -> Icons.Rounded.Screenshot
+                        Action.LOCK_SCREEN -> Icons.Rounded.Lock
+                        Action.SPLIT_SCREEN -> Icons.Rounded.GridView
+                        Action.POWER_DIALOG -> Icons.Rounded.PowerSettingsNew
+                        Action.VOLUME_UP -> Icons.Rounded.VolumeUp
+                        Action.VOLUME_DOWN -> Icons.Rounded.VolumeDown
+                        Action.MEDIA_PLAY_PAUSE -> Icons.Rounded.PlayArrow
+                        Action.BACK -> Icons.Rounded.ArrowBack
+                        Action.NEXT_TRACK -> Icons.Rounded.SkipNext
+                        Action.PREV_TRACK -> Icons.Rounded.SkipPrevious
+                        Action.MUTE_AUDIO -> Icons.Rounded.VolumeOff
+                        Action.RINGER_SILENT -> Icons.Rounded.VolumeMute
+                        Action.RINGER_NORMAL -> Icons.Rounded.VolumeUp
+                        Action.RINGER_VIBRATE -> Icons.Rounded.Vibration
+                        Action.BRIGHTNESS_DOWN -> Icons.Rounded.BrightnessLow
+                        Action.BRIGHTNESS_UP -> Icons.Rounded.BrightnessHigh
+                        Action.FLASHLIGHT -> Icons.Rounded.FlashlightOn
+                        Action.OPEN_APP -> Icons.Rounded.Apps
+                        Action.NONE -> Icons.Rounded.Block
                     }
-                )
+                    
+                    ActionItem(
+                        action = action,
+                        icon = icon,
+                        isSelected = selectedAction == action,
+                        onClick = { 
+                            clickWithVibration(context, viewModel) {
+                                when (triggerMethod) {
+                                    TriggerMethod.MOVE_LEFT -> viewModel.setShakeAction(action)
+                                    TriggerMethod.MOVE_BACKWARD -> viewModel.setProximityWaveAction(action)
+                                    TriggerMethod.MOVE_RIGHT_PHONE -> viewModel.setFlipPhoneAction(action)
+                                    TriggerMethod.BACK_PANEL -> viewModel.setBackPanelAction(action)
+                                }
+                                if (action == Action.OPEN_APP) {
+                                    navController.navigate("select_app/${triggerMethod.name}")
+                                }
+                            }
+                        }
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(24.dp))
         }
@@ -402,7 +444,7 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
     
     Scaffold(
         topBar = { SimpleTopBar("Settings", navController) },
-        bottomBar = { AppBottomBar(navController) },
+        bottomBar = { AppBottomBar(navController, viewModel) },
         containerColor = DarkBackground
     ) { innerPadding ->
         Column(
@@ -417,7 +459,11 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
                     .background(SurfaceVariantDark)
-                    .clickable { navController.navigate("compatibility") }
+                    .clickable {
+                        clickWithVibration(context, viewModel) {
+                            navController.navigate("compatibility")
+                        }
+                    }
                     .padding(20.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -442,7 +488,7 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Vibration, contentDescription = null, tint = AuroraSecondary)
+                    Icon(Icons.Rounded.ArrowBack, contentDescription = null, tint = AuroraSecondary)
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text("Vibration Feedback", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
@@ -452,7 +498,11 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                 }
                 Switch(
                     checked = vibrateEnabled,
-                    onCheckedChange = { viewModel.setVibrateEnabled(it) },
+                    onCheckedChange = { checked ->
+                        clickWithVibration(context, viewModel) {
+                            viewModel.setVibrateEnabled(checked)
+                        }
+                    },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,
                         checkedTrackColor = AuroraSecondary,
@@ -488,7 +538,11 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                 ) {
                     FilterChip(
                         selected = themeMode == "SYSTEM",
-                        onClick = { viewModel.setThemeMode("SYSTEM") },
+                        onClick = {
+                            clickWithVibration(context, viewModel) {
+                                viewModel.setThemeMode("SYSTEM")
+                            }
+                        },
                         label = { Text("System") },
                         modifier = Modifier.weight(1f),
                         colors = FilterChipDefaults.filterChipColors(
@@ -498,7 +552,11 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                     )
                     FilterChip(
                         selected = themeMode == "LIGHT",
-                        onClick = { viewModel.setThemeMode("LIGHT") },
+                        onClick = {
+                            clickWithVibration(context, viewModel) {
+                                viewModel.setThemeMode("LIGHT")
+                            }
+                        },
                         label = { Text("Light") },
                         modifier = Modifier.weight(1f),
                         colors = FilterChipDefaults.filterChipColors(
@@ -508,7 +566,11 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                     )
                     FilterChip(
                         selected = themeMode == "DARK",
-                        onClick = { viewModel.setThemeMode("DARK") },
+                        onClick = {
+                            clickWithVibration(context, viewModel) {
+                                viewModel.setThemeMode("DARK")
+                            }
+                        },
                         label = { Text("Dark") },
                         modifier = Modifier.weight(1f),
                         colors = FilterChipDefaults.filterChipColors(
@@ -518,7 +580,11 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                     )
                     FilterChip(
                         selected = themeMode == "AMOLED",
-                        onClick = { viewModel.setThemeMode("AMOLED") },
+                        onClick = {
+                            clickWithVibration(context, viewModel) {
+                                viewModel.setThemeMode("AMOLED")
+                            }
+                        },
                         label = { Text("AMOLED") },
                         modifier = Modifier.weight(1f),
                         colors = FilterChipDefaults.filterChipColors(
@@ -576,14 +642,6 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-
-            
-            Spacer(modifier = Modifier.height(16.dp))
-
-
-            
-            Spacer(modifier = Modifier.height(16.dp))
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -616,8 +674,6 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                 )
             }
 
-
-            
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
@@ -959,9 +1015,9 @@ fun AppSelectionScreen(viewModel: MainViewModel, navController: NavController, t
                     items(filteredApps) { app ->
                         AppItem(app = app, onClick = {
                             when (triggerMethod) {
-                                TriggerMethod.SHAKE -> viewModel.setShakeAppPackage(app.packageName)
-                                TriggerMethod.PROXIMITY_WAVE -> viewModel.setProximityWaveAppPackage(app.packageName)
-                                TriggerMethod.FLIP_PHONE -> viewModel.setFlipPhoneAppPackage(app.packageName)
+                                TriggerMethod.MOVE_LEFT -> viewModel.setShakeAppPackage(app.packageName)
+                                TriggerMethod.MOVE_BACKWARD -> viewModel.setProximityWaveAppPackage(app.packageName)
+                                TriggerMethod.MOVE_RIGHT_PHONE -> viewModel.setFlipPhoneAppPackage(app.packageName)
                                 TriggerMethod.BACK_PANEL -> viewModel.setBackPanelAppPackage(app.packageName)
                             }
                             navController.navigateUp()
