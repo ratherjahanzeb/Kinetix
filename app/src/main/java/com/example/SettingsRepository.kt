@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -42,6 +43,7 @@ class SettingsRepository(private val context: Context) {
         // Back Panel Settings
         val BACK_PANEL_SENSITIVITY = intPreferencesKey("back_panel_sensitivity") // 0=Low, 1=Medium, 2=High
         val BACK_PANEL_TIMEOUT_MS = intPreferencesKey("back_panel_timeout_ms")
+        val SENSOR_SENSITIVITY = floatPreferencesKey("sensor_sensitivity")
         
         // Feedback
         val VIBRATE_ENABLED = booleanPreferencesKey("vibrate_enabled")
@@ -49,6 +51,8 @@ class SettingsRepository(private val context: Context) {
         val TRIGGER_LOGS = stringPreferencesKey("trigger_logs")
         val MATERIAL_YOU_ENABLED = booleanPreferencesKey("material_you_enabled")
         val ACCENT_THEME = stringPreferencesKey("accent_theme")
+        val THEME_MODE = stringPreferencesKey("theme_mode") // "SYSTEM", "LIGHT", "DARK"
+        val AMOLED_DARK_MODE = booleanPreferencesKey("amoled_dark_mode")
     }
 
     val isEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -105,11 +109,14 @@ class SettingsRepository(private val context: Context) {
     
     val backPanelSensitivity: Flow<Int> = context.dataStore.data.map { it[BACK_PANEL_SENSITIVITY] ?: 1 }
     val backPanelTimeoutMs: Flow<Int> = context.dataStore.data.map { it[BACK_PANEL_TIMEOUT_MS] ?: 300 }
+    val sensorSensitivity: Flow<Float> = context.dataStore.data.map { it[SENSOR_SENSITIVITY] ?: 0.5f }
     
     val vibrateEnabled: Flow<Boolean> = context.dataStore.data.map { it[VIBRATE_ENABLED] ?: true }
     val soundEnabled: Flow<Boolean> = context.dataStore.data.map { it[SOUND_ENABLED] ?: false }
     val materialYouEnabled: Flow<Boolean> = context.dataStore.data.map { it[MATERIAL_YOU_ENABLED] ?: false }
     val accentTheme: Flow<String> = context.dataStore.data.map { it[ACCENT_THEME] ?: "AURORA" }
+    val themeMode: Flow<String> = context.dataStore.data.map { it[THEME_MODE] ?: "SYSTEM" }
+    val amoledDarkMode: Flow<Boolean> = context.dataStore.data.map { it[AMOLED_DARK_MODE] ?: false }
 
     val triggerLogs: Flow<List<TriggerLogEntry>> = context.dataStore.data.map { preferences ->
         val jsonStr = preferences[TRIGGER_LOGS] ?: "[]"
@@ -126,7 +133,7 @@ class SettingsRepository(private val context: Context) {
                     )
                 )
             }
-            list
+            list.take(10)
         } catch (e: Exception) {
             emptyList()
         }
@@ -155,10 +162,13 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAutostartChecked(checked: Boolean) { context.dataStore.edit { it[AUTOSTART_CHECKED] = checked } }
     suspend fun setBackPanelSensitivity(sensitivity: Int) { context.dataStore.edit { it[BACK_PANEL_SENSITIVITY] = sensitivity } }
     suspend fun setBackPanelTimeoutMs(timeout: Int) { context.dataStore.edit { it[BACK_PANEL_TIMEOUT_MS] = timeout } }
+    suspend fun setSensorSensitivity(sensitivity: Float) { context.dataStore.edit { it[SENSOR_SENSITIVITY] = sensitivity } }
     suspend fun setVibrateEnabled(enabled: Boolean) { context.dataStore.edit { it[VIBRATE_ENABLED] = enabled } }
     suspend fun setSoundEnabled(enabled: Boolean) { context.dataStore.edit { it[SOUND_ENABLED] = enabled } }
     suspend fun setMaterialYouEnabled(enabled: Boolean) { context.dataStore.edit { it[MATERIAL_YOU_ENABLED] = enabled } }
     suspend fun setAccentTheme(theme: String) { context.dataStore.edit { it[ACCENT_THEME] = theme } }
+    suspend fun setThemeMode(mode: String) { context.dataStore.edit { it[THEME_MODE] = mode } }
+    suspend fun setAmoledDarkMode(enabled: Boolean) { context.dataStore.edit { it[AMOLED_DARK_MODE] = enabled } }
 
     suspend fun addTriggerLog(entry: TriggerLogEntry) {
         context.dataStore.edit { preferences ->

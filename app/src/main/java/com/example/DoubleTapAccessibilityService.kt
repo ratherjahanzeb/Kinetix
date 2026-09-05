@@ -114,6 +114,19 @@ class DoubleTapAccessibilityService : AccessibilityService() {
                 backTapDetector?.sensitivityLevel = sensitivity
             }
         }
+
+        scope.launch {
+            settingsRepo.timeoutMs.collect { timeout ->
+                backTapDetector?.timeoutMs = timeout
+            }
+        }
+
+        scope.launch {
+            settingsRepo.sensorSensitivity.collect { sens ->
+                backTapDetector?.sensorSensitivity = sens
+                shakeDetector?.sensorSensitivity = sens
+            }
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -141,38 +154,7 @@ class DoubleTapAccessibilityService : AccessibilityService() {
             }
             if (!isSourceEnabled) return@launch
 
-            val currentTime = System.currentTimeMillis()
-
-            when (sourceTrigger) {
-                TriggerMethod.BACK_PANEL -> {
-                    val timeoutMs = settingsRepo.timeoutMs.first()
-                    val diff = currentTime - lastBackTapTime
-                    if (diff in 50..timeoutMs) {
-                        lastBackTapTime = 0L
-                        executeTriggerAction(sourceTrigger)
-                    } else {
-                        lastBackTapTime = currentTime
-                    }
-                }
-                TriggerMethod.SHAKE -> {
-                    if (currentTime - lastShakeTriggerTime > 1000) {
-                        lastShakeTriggerTime = currentTime
-                        executeTriggerAction(sourceTrigger)
-                    }
-                }
-                TriggerMethod.PROXIMITY_WAVE -> {
-                    if (currentTime - lastProximityTriggerTime > 1000) {
-                        lastProximityTriggerTime = currentTime
-                        executeTriggerAction(sourceTrigger)
-                    }
-                }
-                TriggerMethod.FLIP_PHONE -> {
-                    if (currentTime - lastFlipTriggerTime > 1500) {
-                        lastFlipTriggerTime = currentTime
-                        executeTriggerAction(sourceTrigger)
-                    }
-                }
-            }
+            executeTriggerAction(sourceTrigger)
         }
     }
 

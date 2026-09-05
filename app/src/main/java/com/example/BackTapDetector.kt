@@ -7,26 +7,26 @@ import android.hardware.SensorManager
 
 class BackTapDetector(
     private val sensorManager: SensorManager,
-    private val onTap: () -> Unit
+    private val onDoubleTap: () -> Unit
 ) : SensorEventListener {
     private var accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    
     private var isListening = false
     
-    // Configurable
     var sensitivityLevel: Int = 1 // 0=Low, 1=Medium, 2=High
+    var timeoutMs: Int = 300
+    var sensorSensitivity: Float = 0.5f
     
-    // State
-    private var lastX: Float = 0f
-    private var lastY: Float = 0f
-    private var lastZ: Float = 0f
-    private var lastEventTime: Long = 0
+    private var gravity = FloatArray(3)
+    private var tapCount = 0
+    private var lastTapTime: Long = 0
+    private val alpha = 0.8f
 
     fun start() {
         if (!isListening && accelerometer != null) {
-            // SENSOR_DELAY_GAME is ~20ms, good for tap detection
             sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
             isListening = true
+            tapCount = 0
+            gravity = floatArrayOf(0f, 0f, 0f)
         }
     }
 
@@ -40,41 +40,49 @@ class BackTapDetector(
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
 
-        val x = event.values[0]
-        val y = event.values[1]
-        val z = event.values[2]
+        // High-pass filter to isolate linear acceleration (removes gravity and tilt)
+        gravity[0] = alpha * gravity[0] + (1f - alpha) * event.values[0]
+        gravity[1] = alpha * gravity[1] + (1f - alpha) * event.values[1]
+        gravity[2] = alpha * gravity[2] + (1f - alpha) * event.values[2]
+
+        val x = event.values[0] - gravity[0]
+        val y = event.values[1] - gravity[1]
+        val z = event.values[2] - gravity[2]
         
-        // Skip first reading
-        if (lastZ == 0f && lastX == 0f && lastY == 0f) {
-            lastX = x
-            lastY = y
-            lastZ = z
-            return
+        val baseThreshold = when (sensitivityLevel) {
+            0 -> 9.0f // Low sensitivity (needs hard tap)
+            2 -> 3.5f // High sensitivity (light tap)
+            else -> 6.0f // Medium
+        }
+        val threshold = baseThreshold * (1.5f - sensorSensitivity.coerceIn(0.1f, 1.0f))
+        
+        val absX = Math.abs(x)
+        val absY = Math.abs(y)
+        val absZ = Math.abs(z)
+
+        // A tap primarily affects the Z axis.
+        if (absZ > threshold && absZ > absX * 1.5f && absZ > absY * 1.5f) {
+            val now = System.currentTimeMillis()
+            
+            // Debounce a single tap (accelerometer rings for ~100-150ms after a tap)
+            if (now - lastTapTime > 150) {
+                tapCount++
+                if (tapCount == 1) {
+                    lastTapTime = now
+                } else if (tapCount == 2) {
+                    val diff = now - lastTapTime
+                    if (diff <= timeoutMs) {
+                        onDoubleTap()
+                    }
+                    tapCount = 0
+                    lastTapTime = 0
+                }
+            }
         }
 
-        val deltaX = Math.abs(lastX - x)
-        val deltaY = Math.abs(lastY - y)
-        val deltaZ = Math.abs(lastZ - z)
-        
-        lastX = x
-        lastY = y
-        lastZ = z
-        
-        val threshold = when (sensitivityLevel) {
-            0 -> 16.0f // Low sensitivity (needs hard tap)
-            2 -> 8.0f  // High sensitivity (light tap)
-            else -> 12.0f // Medium
-        }
-        
-        // A tap should primarily affect the Z axis.
-        // If X or Y change is too large relative to Z, it's likely a shake or flip.
-        if (deltaZ > threshold && deltaZ > deltaX * 1.5f && deltaZ > deltaY * 1.5f) {
-            val now = System.currentTimeMillis()
-            // 150ms debounce for the accelerometer oscillation of a single tap
-            if (now - lastEventTime > 150) { 
-                lastEventTime = now
-                onTap()
-            }
+        // Timeout sequence if second tap doesn't arrive in time
+        if (tapCount == 1 && System.currentTimeMillis() - lastTapTime > timeoutMs) {
+            tapCount = 0
         }
     }
 

@@ -9,6 +9,8 @@ import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -49,6 +51,7 @@ fun PermissionsScreen(viewModel: MainViewModel, navController: NavController) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val allPermissionsGranted = isAccessibilityGranted && !isBatteryOptimized && isAutostartChecked
 
     Scaffold(
@@ -58,11 +61,10 @@ fun PermissionsScreen(viewModel: MainViewModel, navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
-            
             Box(
                 modifier = Modifier
                     .size(64.dp)
@@ -83,8 +85,71 @@ fun PermissionsScreen(viewModel: MainViewModel, navController: NavController) {
                 style = MaterialTheme.typography.bodyLarge,
                 color = TextSecondary
             )
-            
-            Spacer(modifier = Modifier.height(16.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(SurfaceVariantDark)
+                    .padding(20.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.BrightnessMedium, contentDescription = null, tint = AuroraSecondary, modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text("Theme Mode", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                        Text("Choose Light, Dark, System or AMOLED", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = themeMode == "SYSTEM",
+                        onClick = { viewModel.setThemeMode("SYSTEM") },
+                        label = { Text("System") },
+                        modifier = Modifier.weight(1f),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                            selectedLabelColor = AuroraSecondary
+                        )
+                    )
+                    FilterChip(
+                        selected = themeMode == "LIGHT",
+                        onClick = { viewModel.setThemeMode("LIGHT") },
+                        label = { Text("Light") },
+                        modifier = Modifier.weight(1f),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                            selectedLabelColor = AuroraSecondary
+                        )
+                    )
+                    FilterChip(
+                        selected = themeMode == "DARK",
+                        onClick = { viewModel.setThemeMode("DARK") },
+                        label = { Text("Dark") },
+                        modifier = Modifier.weight(1f),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                            selectedLabelColor = AuroraSecondary
+                        )
+                    )
+                    FilterChip(
+                        selected = themeMode == "AMOLED",
+                        onClick = { viewModel.setThemeMode("AMOLED") },
+                        label = { Text("AMOLED") },
+                        modifier = Modifier.weight(1f),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                            selectedLabelColor = AuroraSecondary
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             PermissionCard(
                 title = "Accessibility Service",

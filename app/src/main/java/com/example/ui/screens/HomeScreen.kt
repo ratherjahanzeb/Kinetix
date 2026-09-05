@@ -173,13 +173,23 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                             color = AuroraSecondary
                         )
                     }
-                    IconButton(onClick = { navController.navigate("permissions") }) {
-                        Icon(
-                            if (hasAllPermissions) Icons.Rounded.VerifiedUser else Icons.Rounded.GppBad,
-                            contentDescription = "Permissions",
-                            tint = if (hasAllPermissions) AuroraSecondary else ErrorRed,
-                            modifier = Modifier.size(32.dp)
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { navController.navigate("settings") }) {
+                            Icon(
+                                Icons.Rounded.Settings,
+                                contentDescription = "Settings",
+                                tint = TextSecondary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                        IconButton(onClick = { navController.navigate("permissions") }) {
+                            Icon(
+                                if (hasAllPermissions) Icons.Rounded.VerifiedUser else Icons.Rounded.GppBad,
+                                contentDescription = "Permissions",
+                                tint = if (hasAllPermissions) AuroraSecondary else ErrorRed,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -234,6 +244,73 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                                 uncheckedThumbColor = TextSecondary,
                                 uncheckedTrackColor = SurfaceVariantDark,
                                 uncheckedBorderColor = DividerColor
+                            )
+                        )
+                    }
+                }
+            }
+
+            // Quick Theme Selector Card
+            item {
+                val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(SurfaceVariantDark)
+                        .padding(20.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.BrightnessMedium, contentDescription = null, tint = AuroraSecondary, modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Theme Mode", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                            Text("Tap to switch app theme instantly", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            selected = themeMode == "SYSTEM",
+                            onClick = { viewModel.setThemeMode("SYSTEM") },
+                            label = { Text("System") },
+                            modifier = Modifier.weight(1f),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                                selectedLabelColor = AuroraSecondary
+                            )
+                        )
+                        FilterChip(
+                            selected = themeMode == "LIGHT",
+                            onClick = { viewModel.setThemeMode("LIGHT") },
+                            label = { Text("Light") },
+                            modifier = Modifier.weight(1f),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                                selectedLabelColor = AuroraSecondary
+                            )
+                        )
+                        FilterChip(
+                            selected = themeMode == "DARK",
+                            onClick = { viewModel.setThemeMode("DARK") },
+                            label = { Text("Dark") },
+                            modifier = Modifier.weight(1f),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                                selectedLabelColor = AuroraSecondary
+                            )
+                        )
+                        FilterChip(
+                            selected = themeMode == "AMOLED",
+                            onClick = { viewModel.setThemeMode("AMOLED") },
+                            label = { Text("AMOLED") },
+                            modifier = Modifier.weight(1f),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                                selectedLabelColor = AuroraSecondary
                             )
                         )
                     }

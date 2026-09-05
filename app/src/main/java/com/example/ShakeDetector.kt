@@ -13,18 +13,21 @@ class ShakeDetector(
     private var accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private var isListening = false
     
-    // Sensitivity: 0=Low, 1=Medium, 2=High
     var sensitivityLevel: Int = 1 
-
-    private var lastShakeTime: Long = 0
+    var sensorSensitivity: Float = 0.5f
+    
+    private var gravity = FloatArray(3)
+    private val alpha = 0.8f
+    
     private var shakeCount: Int = 0
-    private var lastSpikeTime: Long = 0
+    private var lastShakeTime: Long = 0
 
     fun start() {
         if (!isListening && accelerometer != null) {
             sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
             isListening = true
             shakeCount = 0
+            gravity = floatArrayOf(0f, 0f, 0f)
         }
     }
 
@@ -38,40 +41,39 @@ class ShakeDetector(
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
 
-        val x = event.values[0]
-        val y = event.values[1]
-        val z = event.values[2]
+        // High-pass filter to remove gravity
+        gravity[0] = alpha * gravity[0] + (1f - alpha) * event.values[0]
+        gravity[1] = alpha * gravity[1] + (1f - alpha) * event.values[1]
+        gravity[2] = alpha * gravity[2] + (1f - alpha) * event.values[2]
 
-        val gX = x / SensorManager.GRAVITY_EARTH
-        val gY = y / SensorManager.GRAVITY_EARTH
-        val gZ = z / SensorManager.GRAVITY_EARTH
+        val x = event.values[0] - gravity[0]
+        val y = event.values[1] - gravity[1]
+        val z = event.values[2] - gravity[2]
 
-        val gForce = sqrt((gX * gX + gY * gY + gZ * gZ).toDouble()).toFloat()
+        val gForce = sqrt((x * x + y * y + z * z).toDouble()).toFloat()
 
-        val threshold = when (sensitivityLevel) {
-            0 -> 2.7f // Low (hard shake)
-            2 -> 1.8f // High (light shake)
-            else -> 2.2f // Medium
+        val baseThreshold = when (sensitivityLevel) {
+            0 -> 14.0f // Low (hard shake)
+            2 -> 6.0f // High (light shake)
+            else -> 10.0f // Medium
         }
+        val threshold = baseThreshold * (1.5f - sensorSensitivity.coerceIn(0.1f, 1.0f))
 
         val now = System.currentTimeMillis()
 
         if (gForce > threshold) {
-            if (now - lastSpikeTime > 100) {
-                lastSpikeTime = now
+            if (now - lastShakeTime > 150) { // Slop time to ignore same-stroke peaks
+                lastShakeTime = now
                 shakeCount++
                 
-                if (shakeCount >= 3) { // Require 3 spikes for a shake
-                    if (now - lastShakeTime > 1000) {
-                        lastShakeTime = now
-                        onShake()
-                    }
+                if (shakeCount >= 4) { // Require 4 distinct directional shifts
+                    onShake()
                     shakeCount = 0
                 }
             }
         } else {
-            // Reset shake count if too much time has passed without a spike
-            if (now - lastSpikeTime > 500) {
+            // Reset if no shakes for 1 second
+            if (now - lastShakeTime > 1000 && shakeCount > 0) {
                 shakeCount = 0
             }
         }

@@ -397,6 +397,8 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
     val vibrateEnabled by viewModel.vibrateEnabled.collectAsStateWithLifecycle()
     val materialYouEnabled by viewModel.materialYouEnabled.collectAsStateWithLifecycle()
     val accentTheme by viewModel.accentTheme.collectAsStateWithLifecycle()
+    val sensorSensitivity by viewModel.sensorSensitivity.collectAsStateWithLifecycle()
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     
     Scaffold(
         topBar = { SimpleTopBar("Settings", navController) },
@@ -410,6 +412,72 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(SurfaceVariantDark)
+                    .padding(20.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.BrightnessMedium, contentDescription = null, tint = AuroraSecondary)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text("App Theme Mode", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("Choose light, dark, system, or amoled", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = themeMode == "SYSTEM",
+                        onClick = { viewModel.setThemeMode("SYSTEM") },
+                        label = { Text("System") },
+                        modifier = Modifier.weight(1f),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                            selectedLabelColor = AuroraSecondary
+                        )
+                    )
+                    FilterChip(
+                        selected = themeMode == "LIGHT",
+                        onClick = { viewModel.setThemeMode("LIGHT") },
+                        label = { Text("Light") },
+                        modifier = Modifier.weight(1f),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                            selectedLabelColor = AuroraSecondary
+                        )
+                    )
+                    FilterChip(
+                        selected = themeMode == "DARK",
+                        onClick = { viewModel.setThemeMode("DARK") },
+                        label = { Text("Dark") },
+                        modifier = Modifier.weight(1f),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                            selectedLabelColor = AuroraSecondary
+                        )
+                    )
+                    FilterChip(
+                        selected = themeMode == "AMOLED",
+                        onClick = { viewModel.setThemeMode("AMOLED") },
+                        label = { Text("AMOLED") },
+                        modifier = Modifier.weight(1f),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
+                            selectedLabelColor = AuroraSecondary
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -493,6 +561,45 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                         uncheckedBorderColor = DividerColor
                     )
                 )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(SurfaceVariantDark)
+                    .padding(20.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.Tune, contentDescription = null, tint = AuroraSecondary)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text("Sensor Sensitivity Calibration", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("Calibrate threshold (${(sensorSensitivity * 100).toInt()}% sensitivity)", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Slider(
+                    value = sensorSensitivity,
+                    onValueChange = { viewModel.setSensorSensitivity(it) },
+                    valueRange = 0.1f..1.0f,
+                    colors = SliderDefaults.colors(
+                        thumbColor = AuroraSecondary,
+                        activeTrackColor = AuroraSecondary,
+                        inactiveTrackColor = DarkSurface
+                    )
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Hard / Strict", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    Text("Balanced", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    Text("Sensitive / Smooth", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

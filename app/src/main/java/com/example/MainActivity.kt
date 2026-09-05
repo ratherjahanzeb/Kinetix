@@ -38,7 +38,23 @@ class MainActivity : ComponentActivity() {
         setContent {
             val materialYouEnabled by viewModel.materialYouEnabled.collectAsStateWithLifecycle()
             val accentTheme by viewModel.accentTheme.collectAsStateWithLifecycle()
-            MyApplicationTheme(dynamicColor = materialYouEnabled, accentTheme = accentTheme) {
+            val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+            val amoledDarkMode by viewModel.amoledDarkMode.collectAsStateWithLifecycle()
+            
+            val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+            val darkTheme = when (themeMode) {
+                "LIGHT" -> false
+                "DARK" -> true
+                else -> systemDark
+            }
+            val isAmoled = amoledDarkMode || (themeMode == "AMOLED")
+
+            MyApplicationTheme(
+                darkTheme = darkTheme,
+                dynamicColor = materialYouEnabled,
+                accentTheme = accentTheme,
+                amoledDarkMode = isAmoled
+            ) {
                 MainApp(viewModel)
             }
         }

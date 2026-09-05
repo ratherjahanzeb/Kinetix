@@ -65,6 +65,9 @@ class MainViewModel(
     val backPanelSensitivity: StateFlow<Int> = settingsRepo.backPanelSensitivity
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
 
+    val sensorSensitivity: StateFlow<Float> = settingsRepo.sensorSensitivity
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.5f)
+
     val vibrateEnabled: StateFlow<Boolean> = settingsRepo.vibrateEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
@@ -73,6 +76,12 @@ class MainViewModel(
 
     val accentTheme: StateFlow<String> = settingsRepo.accentTheme
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "AURORA")
+
+    val themeMode: StateFlow<String> = settingsRepo.themeMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "SYSTEM")
+
+    val amoledDarkMode: StateFlow<Boolean> = settingsRepo.amoledDarkMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val triggerLogs: StateFlow<List<TriggerLogEntry>> = settingsRepo.triggerLogs
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -142,9 +151,15 @@ class MainViewModel(
     fun setVibrateEnabled(enabled: Boolean) { viewModelScope.launch { settingsRepo.setVibrateEnabled(enabled) } }
     fun setMaterialYouEnabled(enabled: Boolean) { viewModelScope.launch { settingsRepo.setMaterialYouEnabled(enabled) } }
     fun setAccentTheme(theme: String) { viewModelScope.launch { settingsRepo.setAccentTheme(theme) } }
+    fun setThemeMode(mode: String) { viewModelScope.launch { settingsRepo.setThemeMode(mode) } }
+    fun setAmoledDarkMode(enabled: Boolean) { viewModelScope.launch { settingsRepo.setAmoledDarkMode(enabled) } }
 
     fun setBackPanelSensitivity(sensitivity: Int) {
         viewModelScope.launch { settingsRepo.setBackPanelSensitivity(sensitivity) }
+    }
+
+    fun setSensorSensitivity(sensitivity: Float) {
+        viewModelScope.launch { settingsRepo.setSensorSensitivity(sensitivity) }
     }
 
     fun setActiveTrigger(trigger: TriggerMethod) {
