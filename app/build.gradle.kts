@@ -23,9 +23,6 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
-  base {
-    archivesName.set("TapTrigger")
-  }
 
   signingConfigs {
     create("release") {

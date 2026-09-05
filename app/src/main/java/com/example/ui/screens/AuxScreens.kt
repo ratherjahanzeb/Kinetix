@@ -412,6 +412,59 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(SurfaceVariantDark)
+                    .clickable { navController.navigate("compatibility") }
+                    .padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.Memory, contentDescription = null, tint = AuroraSecondary)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text("Device Compatibility", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                }
+                Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = TextSecondary)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(SurfaceVariantDark)
+                    .padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.Vibration, contentDescription = null, tint = AuroraSecondary)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text("Vibration Feedback", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("Vibrate on successful double-tap", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                    }
+                }
+                Switch(
+                    checked = vibrateEnabled,
+                    onCheckedChange = { viewModel.setVibrateEnabled(it) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = AuroraSecondary,
+                        uncheckedThumbColor = TextSecondary,
+                        uncheckedTrackColor = DarkSurface,
+                        uncheckedBorderColor = DividerColor
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -478,132 +531,6 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(SurfaceVariantDark)
-                    .clickable { navController.navigate("compatibility") }
-                    .padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Memory, contentDescription = null, tint = AuroraSecondary)
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text("Device Compatibility", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
-                }
-                Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = TextSecondary)
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(SurfaceVariantDark)
-                    .padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Vibration, contentDescription = null, tint = AuroraSecondary)
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text("Vibration Feedback", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text("Vibrate on successful double-tap", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-                    }
-                }
-                Switch(
-                    checked = vibrateEnabled,
-                    onCheckedChange = { viewModel.setVibrateEnabled(it) },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = AuroraSecondary,
-                        uncheckedThumbColor = TextSecondary,
-                        uncheckedTrackColor = DarkSurface,
-                        uncheckedBorderColor = DividerColor
-                    )
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(SurfaceVariantDark)
-                    .padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Palette, contentDescription = null, tint = AuroraSecondary)
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text("Material You Theme", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text("Vibrant dynamic color theme", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-                    }
-                }
-                Switch(
-                    checked = materialYouEnabled,
-                    enabled = true,
-                    onCheckedChange = { viewModel.setMaterialYouEnabled(it) },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = AuroraSecondary,
-                        uncheckedThumbColor = TextSecondary,
-                        uncheckedTrackColor = DarkSurface,
-                        uncheckedBorderColor = DividerColor
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(SurfaceVariantDark)
-                    .padding(20.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Tune, contentDescription = null, tint = AuroraSecondary)
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text("Sensor Sensitivity Calibration", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text("Calibrate threshold (${(sensorSensitivity * 100).toInt()}% sensitivity)", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Slider(
-                    value = sensorSensitivity,
-                    onValueChange = { viewModel.setSensorSensitivity(it) },
-                    valueRange = 0.1f..1.0f,
-                    colors = SliderDefaults.colors(
-                        thumbColor = AuroraSecondary,
-                        activeTrackColor = AuroraSecondary,
-                        inactiveTrackColor = DarkSurface
-                    )
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Hard / Strict", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-                    Text("Balanced", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-                    Text("Sensitive / Smooth", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -645,6 +572,48 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                         )
                     }
                 }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+
+            
+            Spacer(modifier = Modifier.height(16.dp))
+
+
+            
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(SurfaceVariantDark)
+                    .padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.Palette, contentDescription = null, tint = AuroraSecondary)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text("Material You Theme", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("Vibrant dynamic color theme", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                    }
+                }
+                Switch(
+                    checked = materialYouEnabled,
+                    enabled = true,
+                    onCheckedChange = { viewModel.setMaterialYouEnabled(it) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = AuroraSecondary,
+                        uncheckedThumbColor = TextSecondary,
+                        uncheckedTrackColor = DarkSurface,
+                        uncheckedBorderColor = DividerColor
+                    )
+                )
             }
 
 

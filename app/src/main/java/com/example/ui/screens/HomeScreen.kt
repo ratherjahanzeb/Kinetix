@@ -174,14 +174,6 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { navController.navigate("settings") }) {
-                            Icon(
-                                Icons.Rounded.Settings,
-                                contentDescription = "Settings",
-                                tint = TextSecondary,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
                         IconButton(onClick = { navController.navigate("permissions") }) {
                             Icon(
                                 if (hasAllPermissions) Icons.Rounded.VerifiedUser else Icons.Rounded.GppBad,
@@ -250,72 +242,9 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                 }
             }
 
-            // Quick Theme Selector Card
-            item {
-                val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(SurfaceVariantDark)
-                        .padding(20.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.BrightnessMedium, contentDescription = null, tint = AuroraSecondary, modifier = Modifier.size(24.dp))
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text("Theme Mode", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
-                            Text("Tap to switch app theme instantly", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        FilterChip(
-                            selected = themeMode == "SYSTEM",
-                            onClick = { viewModel.setThemeMode("SYSTEM") },
-                            label = { Text("System") },
-                            modifier = Modifier.weight(1f),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
-                                selectedLabelColor = AuroraSecondary
-                            )
-                        )
-                        FilterChip(
-                            selected = themeMode == "LIGHT",
-                            onClick = { viewModel.setThemeMode("LIGHT") },
-                            label = { Text("Light") },
-                            modifier = Modifier.weight(1f),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
-                                selectedLabelColor = AuroraSecondary
-                            )
-                        )
-                        FilterChip(
-                            selected = themeMode == "DARK",
-                            onClick = { viewModel.setThemeMode("DARK") },
-                            label = { Text("Dark") },
-                            modifier = Modifier.weight(1f),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
-                                selectedLabelColor = AuroraSecondary
-                            )
-                        )
-                        FilterChip(
-                            selected = themeMode == "AMOLED",
-                            onClick = { viewModel.setThemeMode("AMOLED") },
-                            label = { Text("AMOLED") },
-                            modifier = Modifier.weight(1f),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
-                                selectedLabelColor = AuroraSecondary
-                            )
-                        )
-                    }
-                }
-            }
+
+
+
 
             item {
                 Text(
@@ -387,71 +316,54 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                 }
             }
 
-
-            // Tap Style Selector
-            if (bp) {
-                item {
-                    AuroraCard {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            GlowingIconBox(icon = Icons.Rounded.TouchApp, isActive = false)
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Move Forward",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = TextPrimary
-                                )
-                                Text(
-                                    text = when(backPanelSensitivity) {
-                                        0 -> "Hard Tap"
-                                        2 -> "Smooth Tap"
-                                        else -> "Balanced Tap"
-                                    },
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = TextSecondary
-                                )
-                            }
+            // Sensor Sensitivity Calibration
+            item {
+                val sensorSensitivity by viewModel.sensorSensitivity.collectAsStateWithLifecycle()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(SurfaceVariantDark)
+                        .padding(20.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.Tune, contentDescription = null, tint = AuroraSecondary, modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Sensor Sensitivity Calibration", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("Calibrate threshold (${(sensorSensitivity * 100).toInt()}% sensitivity)", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            FilterChip(
-                                selected = backPanelSensitivity == 0,
-                                onClick = { viewModel.setBackPanelSensitivity(0) },
-                                label = { Text("Hard") },
-                                modifier = Modifier.weight(1f),
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
-                                    selectedLabelColor = AuroraSecondary
-                                )
-                            )
-                            FilterChip(
-                                selected = backPanelSensitivity == 1,
-                                onClick = { viewModel.setBackPanelSensitivity(1) },
-                                label = { Text("Balance") },
-                                modifier = Modifier.weight(1f),
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
-                                    selectedLabelColor = AuroraSecondary
-                                )
-                            )
-                            FilterChip(
-                                selected = backPanelSensitivity == 2,
-                                onClick = { viewModel.setBackPanelSensitivity(2) },
-                                label = { Text("Smooth") },
-                                modifier = Modifier.weight(1f),
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = AuroraSecondary.copy(alpha = 0.2f),
-                                    selectedLabelColor = AuroraSecondary
-                                )
-                            )
-                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Slider(
+                        value = sensorSensitivity,
+                        onValueChange = { newVal ->
+                            val stepsList = listOf(0.2f, 0.4f, 0.6f, 0.8f, 1.0f)
+                            val closest = stepsList.minByOrNull { kotlin.math.abs(it - newVal) } ?: newVal
+                            viewModel.setSensorSensitivity(closest)
+                        },
+                        valueRange = 0.2f..1.0f,
+                        steps = 3,
+                        colors = SliderDefaults.colors(
+                            thumbColor = AuroraSecondary,
+                            activeTrackColor = AuroraSecondary,
+                            inactiveTrackColor = DarkSurface
+                        )
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("20%", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        Text("40%", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        Text("60%", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        Text("80%", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        Text("100%", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                     }
                 }
             }
+
 
             // Trigger History Log
             item {
@@ -471,7 +383,7 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                                     color = TextPrimary
                                 )
                                 Text(
-                                    text = "Last successful double-taps",
+                                    text = "Last successful gestures",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = TextSecondary
                                 )

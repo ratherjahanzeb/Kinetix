@@ -66,18 +66,18 @@ fun MainApp(viewModel: MainViewModel) {
     val navController = rememberNavController()
     val onboardingCompleted by viewModel.onboardingCompleted.collectAsStateWithLifecycle()
 
-    if (onboardingCompleted == null) {
-        Box(modifier = Modifier.fillMaxSize().background(DarkBackground))
-        return
-    }
-
-    val startDest = if (onboardingCompleted == true) "home" else "permissions"
-
     NavHost(
         navController = navController,
-        startDestination = startDest,
-        modifier = Modifier.fillMaxSize()
+        startDestination = "splash",
+        modifier = Modifier.fillMaxSize(),
+        enterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(500)) },
+        exitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(500)) },
+        popEnterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(500)) },
+        popExitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(500)) }
     ) {
+        composable("splash") {
+            com.example.ui.screens.SplashScreen(viewModel, navController, onboardingCompleted)
+        }
         composable("permissions") { PermissionsScreen(viewModel, navController) }
         composable("home") { HomeScreen(viewModel, navController) }
         composable("settings") { SettingsScreen(viewModel, navController) }
