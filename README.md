@@ -14,7 +14,7 @@
 
 ## 📱 About **Kinetix**
 
-**Kinetix** is an open-source Android utility app that triggers configured system actions based on physical device movements and gestures (such as moving left, backward/proximity, flipping, or back panel touches).
+**Kinetix** is an open-source Android utility app that triggers configured system actions based on physical device movements and gestures (such as moving left, right, forward,backward,).
 
 Built with **Kotlin** and **Jetpack Compose**, Kinetix features Material Design 3 styling, theme customization, trigger logging, vibration feedback, and startup sound effects.
 
@@ -22,7 +22,7 @@ Built with **Kotlin** and **Jetpack Compose**, Kinetix features Material Design 
 
 ## ✨ Key Features
 
-*   **Configurable Triggers**: Set actions for Move Left, Move Backward, Flip Phone, and Back Panel.
+*   **Configurable Triggers**: Set actions for Move Left, Move Backward, and Back Panel.
 *   **Action Mapping**: Map gestures to system actions like Home, Flashlight, Screenshot, or launching any installed app.
 *   **Sensor Sensitivity Calibration**: Adjust sensitivity thresholds for precise gesture detection.
 *   **Trigger History Log**: Review recent successful gesture triggers with timestamps.
