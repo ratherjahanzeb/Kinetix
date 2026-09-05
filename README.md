@@ -22,7 +22,7 @@ Built with **Kotlin** and **Jetpack Compose**, Kinetix features Material Design 
 
 ## ✨ Key Features
 
-*   **Configurable Triggers**: Set actions for Move Left, Move Backward, and Back Panel.
+*   **Configurable Triggers**: Set actions for Move Left, Move Backward, Move Forward and Move Left
 *   **Action Mapping**: Map gestures to system actions like Home, Flashlight, Screenshot, or launching any installed app.
 *   **Sensor Sensitivity Calibration**: Adjust sensitivity thresholds for precise gesture detection.
 *   **Trigger History Log**: Review recent successful gesture triggers with timestamps.
