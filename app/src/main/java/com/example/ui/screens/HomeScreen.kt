@@ -320,7 +320,7 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                             Spacer(modifier = Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Back Tap Style",
+                                    text = "Rear Tap Gesture",
                                     style = MaterialTheme.typography.titleLarge,
                                     color = TextPrimary
                                 )
@@ -428,7 +428,7 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                                     "SHAKE" -> "Shake Phone"
                                     "PROXIMITY_WAVE" -> "Proximity Wave"
                                     "FLIP_PHONE" -> "Flip Phone"
-                                    "BACK_PANEL" -> "Back Tap"
+                                    "BACK_PANEL" -> "Rear Tap"
                                     else -> log.sourceTrigger
                                 }
                                 

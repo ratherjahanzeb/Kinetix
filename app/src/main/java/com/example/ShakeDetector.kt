@@ -17,11 +17,14 @@ class ShakeDetector(
     var sensitivityLevel: Int = 1 
 
     private var lastShakeTime: Long = 0
+    private var shakeCount: Int = 0
+    private var lastSpikeTime: Long = 0
 
     fun start() {
         if (!isListening && accelerometer != null) {
             sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
             isListening = true
+            shakeCount = 0
         }
     }
 
@@ -51,11 +54,25 @@ class ShakeDetector(
             else -> 2.2f // Medium
         }
 
+        val now = System.currentTimeMillis()
+
         if (gForce > threshold) {
-            val now = System.currentTimeMillis()
-            if (now - lastShakeTime > 500) {
-                lastShakeTime = now
-                onShake()
+            if (now - lastSpikeTime > 100) {
+                lastSpikeTime = now
+                shakeCount++
+                
+                if (shakeCount >= 3) { // Require 3 spikes for a shake
+                    if (now - lastShakeTime > 1000) {
+                        lastShakeTime = now
+                        onShake()
+                    }
+                    shakeCount = 0
+                }
+            }
+        } else {
+            // Reset shake count if too much time has passed without a spike
+            if (now - lastSpikeTime > 500) {
+                shakeCount = 0
             }
         }
     }

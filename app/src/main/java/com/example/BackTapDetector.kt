@@ -17,6 +17,8 @@ class BackTapDetector(
     var sensitivityLevel: Int = 1 // 0=Low, 1=Medium, 2=High
     
     // State
+    private var lastX: Float = 0f
+    private var lastY: Float = 0f
     private var lastZ: Float = 0f
     private var lastEventTime: Long = 0
 
@@ -38,15 +40,24 @@ class BackTapDetector(
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
 
+        val x = event.values[0]
+        val y = event.values[1]
         val z = event.values[2]
         
         // Skip first reading
-        if (lastZ == 0f) {
+        if (lastZ == 0f && lastX == 0f && lastY == 0f) {
+            lastX = x
+            lastY = y
             lastZ = z
             return
         }
 
+        val deltaX = Math.abs(lastX - x)
+        val deltaY = Math.abs(lastY - y)
         val deltaZ = Math.abs(lastZ - z)
+        
+        lastX = x
+        lastY = y
         lastZ = z
         
         val threshold = when (sensitivityLevel) {
@@ -55,7 +66,9 @@ class BackTapDetector(
             else -> 12.0f // Medium
         }
         
-        if (deltaZ > threshold) {
+        // A tap should primarily affect the Z axis.
+        // If X or Y change is too large relative to Z, it's likely a shake or flip.
+        if (deltaZ > threshold && deltaZ > deltaX * 1.5f && deltaZ > deltaY * 1.5f) {
             val now = System.currentTimeMillis()
             // 150ms debounce for the accelerometer oscillation of a single tap
             if (now - lastEventTime > 150) { 

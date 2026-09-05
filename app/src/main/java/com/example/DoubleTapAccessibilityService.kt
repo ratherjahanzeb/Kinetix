@@ -17,7 +17,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class DoubleTapAccessibilityService : AccessibilityService() {
-    private var lastTapTime = 0L
+    private var lastBackTapTime = 0L
+    private var lastShakeTriggerTime = 0L
+    private var lastProximityTriggerTime = 0L
+    private var lastFlipTriggerTime = 0L
+    private var lastGlobalActionTime = 0L
     private val scope = CoroutineScope(Dispatchers.IO + Job())
     private lateinit var settingsRepo: SettingsRepository
     private var isFlashlightOn = false
@@ -137,34 +141,66 @@ class DoubleTapAccessibilityService : AccessibilityService() {
             }
             if (!isSourceEnabled) return@launch
 
-            val timeoutMs = settingsRepo.timeoutMs.first()
             val currentTime = System.currentTimeMillis()
-            val diff = currentTime - lastTapTime
 
-            if (diff in 50..timeoutMs) { // 50ms debounce
-                lastTapTime = 0L // Reset to prevent triple-tap firing twice
-                val vibrateEnabled = settingsRepo.vibrateEnabled.first()
-                if (vibrateEnabled) {
-                    vibrate()
+            when (sourceTrigger) {
+                TriggerMethod.BACK_PANEL -> {
+                    val timeoutMs = settingsRepo.timeoutMs.first()
+                    val diff = currentTime - lastBackTapTime
+                    if (diff in 50..timeoutMs) {
+                        lastBackTapTime = 0L
+                        executeTriggerAction(sourceTrigger)
+                    } else {
+                        lastBackTapTime = currentTime
+                    }
                 }
-                val actionToExecute = when (sourceTrigger) {
-                    TriggerMethod.SHAKE -> settingsRepo.shakeAction.first()
-                    TriggerMethod.PROXIMITY_WAVE -> settingsRepo.proximityWaveAction.first()
-                    TriggerMethod.FLIP_PHONE -> settingsRepo.flipPhoneAction.first()
-                    TriggerMethod.BACK_PANEL -> settingsRepo.backPanelAction.first()
+                TriggerMethod.SHAKE -> {
+                    if (currentTime - lastShakeTriggerTime > 1000) {
+                        lastShakeTriggerTime = currentTime
+                        executeTriggerAction(sourceTrigger)
+                    }
                 }
-                settingsRepo.addTriggerLog(
-                    TriggerLogEntry(
-                        sourceTrigger = sourceTrigger.name,
-                        actionName = actionToExecute.name,
-                        timestamp = System.currentTimeMillis()
-                    )
-                )
-                executeAction(actionToExecute, sourceTrigger)
-            } else {
-                lastTapTime = currentTime
+                TriggerMethod.PROXIMITY_WAVE -> {
+                    if (currentTime - lastProximityTriggerTime > 1000) {
+                        lastProximityTriggerTime = currentTime
+                        executeTriggerAction(sourceTrigger)
+                    }
+                }
+                TriggerMethod.FLIP_PHONE -> {
+                    if (currentTime - lastFlipTriggerTime > 1500) {
+                        lastFlipTriggerTime = currentTime
+                        executeTriggerAction(sourceTrigger)
+                    }
+                }
             }
         }
+    }
+
+    private suspend fun executeTriggerAction(sourceTrigger: TriggerMethod) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastGlobalActionTime < 1000) {
+            return // Ignore if another gesture action was executed within the last second
+        }
+        lastGlobalActionTime = currentTime
+
+        val vibrateEnabled = settingsRepo.vibrateEnabled.first()
+        if (vibrateEnabled) {
+            vibrate()
+        }
+        val actionToExecute = when (sourceTrigger) {
+            TriggerMethod.SHAKE -> settingsRepo.shakeAction.first()
+            TriggerMethod.PROXIMITY_WAVE -> settingsRepo.proximityWaveAction.first()
+            TriggerMethod.FLIP_PHONE -> settingsRepo.flipPhoneAction.first()
+            TriggerMethod.BACK_PANEL -> settingsRepo.backPanelAction.first()
+        }
+        settingsRepo.addTriggerLog(
+            TriggerLogEntry(
+                sourceTrigger = sourceTrigger.name,
+                actionName = actionToExecute.name,
+                timestamp = System.currentTimeMillis()
+            )
+        )
+        executeAction(actionToExecute, sourceTrigger)
     }
 
     private suspend fun executeAction(action: Action, sourceTrigger: TriggerMethod) {

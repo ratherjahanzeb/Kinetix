@@ -32,10 +32,14 @@ class FlipDetector(
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
 
+        val x = event.values[0] / SensorManager.GRAVITY_EARTH
+        val y = event.values[1] / SensorManager.GRAVITY_EARTH
         val z = event.values[2] / SensorManager.GRAVITY_EARTH // Roughly 1.0 when face up, -1.0 face down
 
-        val isFaceUp = z > 0.7f
-        val isFaceDown = z < -0.7f
+        val isFlat = Math.abs(x) < 0.5f && Math.abs(y) < 0.5f
+
+        val isFaceUp = isFlat && z > 0.7f
+        val isFaceDown = isFlat && z < -0.7f
 
         val now = System.currentTimeMillis()
         
