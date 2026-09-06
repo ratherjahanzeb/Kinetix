@@ -124,13 +124,13 @@ fun SplashScreen(
                     modifier = Modifier
                         .size(96.dp)
                         .clip(RoundedCornerShape(24.dp))
-                        .background(androidx.compose.ui.graphics.Color.White),
+                        .background(androidx.compose.ui.graphics.Color.Black),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        painter = painterResource(id = R.drawable.app_logo),
                         contentDescription = "App Icon",
-                        modifier = Modifier.size(80.dp)
+                        modifier = Modifier.size(96.dp)
                     )
                 }
             }

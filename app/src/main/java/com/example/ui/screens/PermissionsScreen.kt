@@ -4,8 +4,11 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -35,7 +39,14 @@ fun PermissionsScreen(viewModel: MainViewModel, navController: NavController) {
     val context = LocalContext.current
     var isAccessibilityGranted by remember { mutableStateOf(false) }
     var isBatteryOptimized by remember { mutableStateOf(false) }
+    var isNotificationGranted by remember { mutableStateOf(false) }
     val isAutostartChecked by viewModel.autostartChecked.collectAsStateWithLifecycle()
+
+    val notificationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        isNotificationGranted = isGranted
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -43,15 +54,17 @@ fun PermissionsScreen(viewModel: MainViewModel, navController: NavController) {
             if (event == Lifecycle.Event.ON_RESUME) {
                 isAccessibilityGranted = viewModel.refreshCompatibility().isAccessibilityEnabled
                 isBatteryOptimized = !isIgnoringBatteryOptimizations(context)
+                isNotificationGranted = checkNotificationGranted(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         isAccessibilityGranted = viewModel.refreshCompatibility().isAccessibilityEnabled
         isBatteryOptimized = !isIgnoringBatteryOptimizations(context)
+        isNotificationGranted = checkNotificationGranted(context)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val allPermissionsGranted = isAccessibilityGranted && !isBatteryOptimized && isAutostartChecked
+    val allPermissionsGranted = isAccessibilityGranted && !isBatteryOptimized && isAutostartChecked && isNotificationGranted
 
     Scaffold(
         containerColor = DarkBackground
@@ -118,6 +131,38 @@ fun PermissionsScreen(viewModel: MainViewModel, navController: NavController) {
                             context.startActivity(fallbackIntent)
                         } catch (e2: Exception) {
                             e2.printStackTrace()
+                        }
+                    }
+                }
+            )
+
+            PermissionCard(
+                title = "Notifications",
+                description = "Keep background service persistent and display quick status controls.",
+                isGranted = isNotificationGranted,
+                icon = Icons.Rounded.Notifications,
+                onClick = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        if (context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                            notificationLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            try {
+                                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                }
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    } else {
+                        try {
+                            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                            }
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
                         }
                     }
                 }
@@ -251,4 +296,12 @@ fun tryOpenAutoStart(context: Context): Boolean {
         }
     }
     return false
+}
+
+fun checkNotificationGranted(context: Context): Boolean {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    } else {
+        NotificationManagerCompat.from(context).areNotificationsEnabled()
+    }
 }

@@ -19,6 +19,7 @@ class BackTapDetector(
     private var gravity = FloatArray(3)
     private var tapCount = 0
     private var lastTapTime: Long = 0
+    private var isInPeak = false
     private val alpha = 0.8f
 
     fun start() {
@@ -26,6 +27,7 @@ class BackTapDetector(
             sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
             isListening = true
             tapCount = 0
+            isInPeak = false
             gravity = floatArrayOf(0f, 0f, 0f)
         }
     }
@@ -62,22 +64,27 @@ class BackTapDetector(
 
         // A tap primarily affects the Z axis.
         if (absZ > threshold && absZ > absX * 1.5f && absZ > absY * 1.5f) {
-            val now = System.currentTimeMillis()
-            
-            // Debounce a single tap (accelerometer rings for ~100-150ms after a tap)
-            if (now - lastTapTime > 150) {
-                tapCount++
-                if (tapCount == 1) {
-                    lastTapTime = now
-                } else if (tapCount == 2) {
-                    val diff = now - lastTapTime
-                    if (diff <= timeoutMs) {
-                        onDoubleTap()
+            if (!isInPeak) {
+                isInPeak = true
+                val now = System.currentTimeMillis()
+                
+                // Debounce a single tap (accelerometer rings for ~100-150ms after a tap)
+                if (now - lastTapTime > 150) {
+                    tapCount++
+                    if (tapCount == 1) {
+                        lastTapTime = now
+                    } else if (tapCount == 2) {
+                        val diff = now - lastTapTime
+                        if (diff <= timeoutMs) {
+                            onDoubleTap()
+                        }
+                        tapCount = 0
+                        lastTapTime = 0
                     }
-                    tapCount = 0
-                    lastTapTime = 0
                 }
             }
+        } else if (absZ < threshold * 0.5f) {
+            isInPeak = false
         }
 
         // Timeout sequence if second tap doesn't arrive in time

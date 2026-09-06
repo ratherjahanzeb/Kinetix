@@ -111,40 +111,6 @@ fun TriggerSelectionScreen(viewModel: MainViewModel, navController: NavControlle
             SectionHeader("AVAILABLE SENSORS")
             
             TriggerItem(
-                trigger = TriggerMethod.MOVE_LEFT,
-                icon = Icons.Rounded.ArrowBack,
-                isChecked = moveLeftEnabled,
-                selectedAction = shAction,
-                onCheckedChange = { checked ->
-                    clickWithVibration(context, viewModel) {
-                        viewModel.setShakeEnabled(checked)
-                    }
-                },
-                onClick = {
-                    clickWithVibration(context, viewModel) {
-                        navController.navigate("select_action/${TriggerMethod.MOVE_LEFT.name}")
-                    }
-                }
-            )
-            
-            TriggerItem(
-                trigger = TriggerMethod.MOVE_BACKWARD,
-                icon = Icons.Rounded.ArrowDownward,
-                isChecked = moveBackwardEnabled,
-                selectedAction = proxAction,
-                onCheckedChange = { checked ->
-                    clickWithVibration(context, viewModel) {
-                        viewModel.setProximityWaveEnabled(checked)
-                    }
-                },
-                onClick = {
-                    clickWithVibration(context, viewModel) {
-                        navController.navigate("select_action/${TriggerMethod.MOVE_BACKWARD.name}")
-                    }
-                }
-            )
-            
-            TriggerItem(
                 trigger = TriggerMethod.MOVE_RIGHT_PHONE,
                 icon = Icons.Rounded.ArrowForward,
                 isChecked = flipPhoneEnabled,
@@ -162,6 +128,23 @@ fun TriggerSelectionScreen(viewModel: MainViewModel, navController: NavControlle
             )
             
             TriggerItem(
+                trigger = TriggerMethod.MOVE_LEFT,
+                icon = Icons.Rounded.ArrowBack,
+                isChecked = moveLeftEnabled,
+                selectedAction = shAction,
+                onCheckedChange = { checked ->
+                    clickWithVibration(context, viewModel) {
+                        viewModel.setShakeEnabled(checked)
+                    }
+                },
+                onClick = {
+                    clickWithVibration(context, viewModel) {
+                        navController.navigate("select_action/${TriggerMethod.MOVE_LEFT.name}")
+                    }
+                }
+            )
+            
+            TriggerItem(
                 trigger = TriggerMethod.BACK_PANEL,
                 icon = Icons.Rounded.ArrowUpward,
                 isChecked = backPanelEnabled,
@@ -174,6 +157,23 @@ fun TriggerSelectionScreen(viewModel: MainViewModel, navController: NavControlle
                 onClick = {
                     clickWithVibration(context, viewModel) {
                         navController.navigate("select_action/${TriggerMethod.BACK_PANEL.name}")
+                    }
+                }
+            )
+            
+            TriggerItem(
+                trigger = TriggerMethod.MOVE_BACKWARD,
+                icon = Icons.Rounded.ArrowDownward,
+                isChecked = moveBackwardEnabled,
+                selectedAction = proxAction,
+                onCheckedChange = { checked ->
+                    clickWithVibration(context, viewModel) {
+                        viewModel.setProximityWaveEnabled(checked)
+                    }
+                },
+                onClick = {
+                    clickWithVibration(context, viewModel) {
+                        navController.navigate("select_action/${TriggerMethod.MOVE_BACKWARD.name}")
                     }
                 }
             )
@@ -691,7 +691,7 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                     Icon(Icons.Rounded.QrCode, contentDescription = null, tint = AuroraSecondary)
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
-                        Text("Support My Work", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                        Text("Keep Kinetix Moving", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
                         Spacer(modifier = Modifier.height(2.dp))
                         Text("View & share payment QR safely", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
                     }
@@ -818,7 +818,7 @@ fun UpiQrScreen(navController: NavController) {
     val qrBitmap = remember(upiUri) { generateQRCode(upiUri, 800, 800) }
 
     Scaffold(
-        topBar = { SimpleTopBar("Support My Work", navController) },
+        topBar = { SimpleTopBar("Keep Kinetix Moving", navController) },
         containerColor = DarkBackground
     ) { innerPadding ->
         Box(
@@ -843,40 +843,6 @@ fun UpiQrScreen(navController: NavController) {
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = AuroraPrimary.copy(alpha = 0.15f),
-                        modifier = Modifier.size(56.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Rounded.QrCodeScanner,
-                                contentDescription = null,
-                                tint = AuroraSecondary,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Text(
-                        text = "Scan to Support",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = "Jahanzeb • FamPay",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary
-                    )
-
-                    Spacer(modifier = Modifier.height(28.dp))
-
                     if (qrBitmap != null) {
                         Box(
                             modifier = Modifier
@@ -897,9 +863,19 @@ fun UpiQrScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Text(
-                        text = "Any UPI App (GPay, PhonePe, Paytm)",
+                        text = "Fuel future updates and keep Kinetix completely free and ad-free.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "Scan with any UPI App (GPay, PhonePe, Paytm)",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = AuroraSecondary,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }
             }

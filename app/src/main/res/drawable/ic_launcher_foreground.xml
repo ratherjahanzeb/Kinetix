@@ -3,16 +3,47 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Left Symbol: Tau/T with bottom hook curving right -->
+    <!-- Red Geometric Monogram Symbol -->
+    <!-- Middle Crossbar -->
     <path
-        android:fillColor="#000000"
-        android:pathData="M24,32h26v10h-9v24c0,5 3,8 8,8h5v10h-5c-10,0 -18,-6 -18,-18v-24h-7z" />
-    <!-- Right Symbol: Identical Tau/T with bottom hook curving right -->
+        android:strokeColor="#FF2626"
+        android:strokeWidth="5.9"
+        android:strokeLineCap="butt"
+        android:strokeLineJoin="round"
+        android:pathData="M39.8,49.4 L68.2,49.4" />
+    <!-- Top-Left Bar and Central Stem -->
     <path
-        android:fillColor="#000000"
-        android:pathData="M58,32h26v10h-9v24c0,5 3,8 8,8h5v10h-5c-10,0 -18,-6 -18,-18v-24h-7z" />
-    <!-- Dot below right symbol -->
+        android:strokeColor="#FF2626"
+        android:strokeWidth="5.9"
+        android:strokeLineCap="butt"
+        android:strokeLineJoin="round"
+        android:pathData="M39.8,34.9 L54.0,34.9 L54.0,49.4" />
+    <!-- Upper-Right Hook -->
     <path
-        android:fillColor="#000000"
-        android:pathData="M85,75a4.5,4.5 0,1 1,9 0a4.5,4.5 0,1 1,-9 0" />
+        android:strokeColor="#FF2626"
+        android:strokeWidth="5.9"
+        android:strokeLineCap="butt"
+        android:strokeLineJoin="round"
+        android:pathData="M54.0,34.9 C59.0,34.9 65.3,33.8 65.3,29.2" />
+    <!-- Lower-Left Loop -->
+    <path
+        android:strokeColor="#FF2626"
+        android:strokeWidth="5.9"
+        android:strokeLineCap="butt"
+        android:strokeLineJoin="round"
+        android:pathData="M42.7,49.4 L42.7,58.9 C42.7,64.4 48.5,65.2 54.0,57.5" />
+    <!-- Bottom-Left Leg -->
+    <path
+        android:strokeColor="#FF2626"
+        android:strokeWidth="5.9"
+        android:strokeLineCap="butt"
+        android:strokeLineJoin="round"
+        android:pathData="M54.0,57.5 L43.1,78.8" />
+    <!-- Bottom-Right Leg -->
+    <path
+        android:strokeColor="#FF2626"
+        android:strokeWidth="5.9"
+        android:strokeLineCap="butt"
+        android:strokeLineJoin="round"
+        android:pathData="M64.8,78.8 L64.8,68.5 C64.8,58.5 60.1,51.7 54.0,49.4" />
 </vector>

@@ -237,7 +237,7 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                             checked = isEnabled,
                             onCheckedChange = { checked ->
                                 clickWithVibration(context, viewModel) {
-                                    if (!checked && !hasAllPermissions) {
+                                    if (checked && !hasAllPermissions) {
                                         navController.navigate("permissions")
                                     } else {
                                         viewModel.setEnabled(checked)
@@ -305,24 +305,24 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             if (ml || prox || mr || bp) {
-                                if (ml) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        GlowingIconBox(icon = Icons.Rounded.ArrowBack, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
-                                    }
-                                }
-                                if (prox) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        GlowingIconBox(icon = Icons.Rounded.ArrowDownward, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
-                                    }
-                                }
                                 if (mr) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         GlowingIconBox(icon = Icons.Rounded.ArrowForward, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
                                     }
                                 }
+                                if (ml) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        GlowingIconBox(icon = Icons.Rounded.ArrowBack, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
+                                    }
+                                }
                                 if (bp) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         GlowingIconBox(icon = Icons.Rounded.ArrowUpward, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
+                                    }
+                                }
+                                if (prox) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        GlowingIconBox(icon = Icons.Rounded.ArrowDownward, isActive = true, color = AuroraSecondary, boxSize = 48.dp, iconSize = 24.dp, cornerRadius = 12.dp)
                                     }
                                 }
                             } else {
