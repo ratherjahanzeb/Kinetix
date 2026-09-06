@@ -1,6 +1,0 @@
-{
-  "name": "Kinetix",
-  "description": "Trigger actions by moving your phone left, right, backward, or forward",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
