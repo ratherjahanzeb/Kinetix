@@ -63,7 +63,8 @@ class BackTapDetector(
         val absZ = Math.abs(z)
 
         // A tap primarily affects the Z axis.
-        if (absZ > threshold && absZ > absX * 1.5f && absZ > absY * 1.5f) {
+        // Pushing the phone forward creates negative Z acceleration and positive Y acceleration
+        if ((z < -threshold || y > threshold) && absZ > absX * 1.5f && absZ > absY * 0.5f) {
             if (!isInPeak) {
                 isInPeak = true
                 val now = System.currentTimeMillis()
@@ -83,7 +84,7 @@ class BackTapDetector(
                     }
                 }
             }
-        } else if (absZ < threshold * 0.5f) {
+        } else if (z > threshold * 0.5f || y < -threshold * 0.5f) {
             isInPeak = false
         }
 

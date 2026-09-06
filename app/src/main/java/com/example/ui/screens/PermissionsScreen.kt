@@ -40,6 +40,7 @@ fun PermissionsScreen(viewModel: MainViewModel, navController: NavController) {
     var isAccessibilityGranted by remember { mutableStateOf(false) }
     var isBatteryOptimized by remember { mutableStateOf(false) }
     var isNotificationGranted by remember { mutableStateOf(false) }
+    var isWriteSettingsGranted by remember { mutableStateOf(false) }
     val isAutostartChecked by viewModel.autostartChecked.collectAsStateWithLifecycle()
 
     val notificationLauncher = rememberLauncherForActivityResult(
@@ -55,16 +56,18 @@ fun PermissionsScreen(viewModel: MainViewModel, navController: NavController) {
                 isAccessibilityGranted = viewModel.refreshCompatibility().isAccessibilityEnabled
                 isBatteryOptimized = !isIgnoringBatteryOptimizations(context)
                 isNotificationGranted = checkNotificationGranted(context)
+                isWriteSettingsGranted = Settings.System.canWrite(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         isAccessibilityGranted = viewModel.refreshCompatibility().isAccessibilityEnabled
         isBatteryOptimized = !isIgnoringBatteryOptimizations(context)
         isNotificationGranted = checkNotificationGranted(context)
+        isWriteSettingsGranted = Settings.System.canWrite(context)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val allPermissionsGranted = isAccessibilityGranted && !isBatteryOptimized && isAutostartChecked && isNotificationGranted
+    val allPermissionsGranted = isAccessibilityGranted && !isBatteryOptimized && isAutostartChecked && isNotificationGranted && isWriteSettingsGranted
 
     Scaffold(
         containerColor = DarkBackground
@@ -108,6 +111,24 @@ fun PermissionsScreen(viewModel: MainViewModel, navController: NavController) {
                 onClick = {
                     try {
                         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            )
+
+            PermissionCard(
+                title = "Modify System Settings",
+                description = "Allow direct brightness control without opening Quick Settings.",
+                isGranted = isWriteSettingsGranted,
+                icon = Icons.Rounded.Settings,
+                onClick = {
+                    try {
+                        val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).apply {
+                            data = Uri.parse("package:${context.packageName}")
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
                         context.startActivity(intent)
                     } catch (e: Exception) {
                         e.printStackTrace()

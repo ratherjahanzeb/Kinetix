@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import android.widget.Toast
 import android.content.Intent
 import android.net.Uri
+import android.provider.Settings
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
@@ -45,6 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.Action
 import com.example.MainViewModel
+import com.example.AppInfo
 import com.example.TriggerMethod
 import com.example.clickWithVibration
 import com.example.ui.theme.*
@@ -95,6 +97,22 @@ fun TriggerSelectionScreen(viewModel: MainViewModel, navController: NavControlle
     val proxAction by viewModel.moveBackwardAction.collectAsStateWithLifecycle()
     val moveRightAction by viewModel.flipPhoneAction.collectAsStateWithLifecycle()
     val bpAction by viewModel.backPanelAction.collectAsStateWithLifecycle()
+
+    val moveLeftPkg by viewModel.moveLeftAppPackage.collectAsStateWithLifecycle()
+    val moveBackwardPkg by viewModel.moveBackwardAppPackage.collectAsStateWithLifecycle()
+    val flipPhonePkg by viewModel.flipPhoneAppPackage.collectAsStateWithLifecycle()
+    val backPanelPkg by viewModel.backPanelAppPackage.collectAsStateWithLifecycle()
+
+    val installedApps by viewModel.installedApps.collectAsStateWithLifecycle()
+    
+    LaunchedEffect(Unit) {
+        viewModel.loadInstalledApps(context)
+    }
+
+    fun getAppLabel(packageName: String?): String? {
+        if (packageName == null || installedApps == null) return null
+        return installedApps?.find { it.packageName == packageName }?.name
+    }
     
     val compatibility = viewModel.compatibilityStatus
     
@@ -115,6 +133,7 @@ fun TriggerSelectionScreen(viewModel: MainViewModel, navController: NavControlle
                 icon = Icons.Rounded.ArrowForward,
                 isChecked = flipPhoneEnabled,
                 selectedAction = moveRightAction,
+                appLabel = getAppLabel(flipPhonePkg),
                 onCheckedChange = { checked ->
                     clickWithVibration(context, viewModel) {
                         viewModel.setFlipPhoneEnabled(checked)
@@ -132,6 +151,7 @@ fun TriggerSelectionScreen(viewModel: MainViewModel, navController: NavControlle
                 icon = Icons.Rounded.ArrowBack,
                 isChecked = moveLeftEnabled,
                 selectedAction = shAction,
+                appLabel = getAppLabel(moveLeftPkg),
                 onCheckedChange = { checked ->
                     clickWithVibration(context, viewModel) {
                         viewModel.setShakeEnabled(checked)
@@ -149,6 +169,7 @@ fun TriggerSelectionScreen(viewModel: MainViewModel, navController: NavControlle
                 icon = Icons.Rounded.ArrowUpward,
                 isChecked = backPanelEnabled,
                 selectedAction = bpAction,
+                appLabel = getAppLabel(backPanelPkg),
                 onCheckedChange = { checked ->
                     clickWithVibration(context, viewModel) {
                         viewModel.setBackPanelEnabled(checked)
@@ -166,6 +187,7 @@ fun TriggerSelectionScreen(viewModel: MainViewModel, navController: NavControlle
                 icon = Icons.Rounded.ArrowDownward,
                 isChecked = moveBackwardEnabled,
                 selectedAction = proxAction,
+                appLabel = getAppLabel(moveBackwardPkg),
                 onCheckedChange = { checked ->
                     clickWithVibration(context, viewModel) {
                         viewModel.setProximityWaveEnabled(checked)
@@ -188,6 +210,7 @@ fun TriggerItem(
     icon: ImageVector,
     isChecked: Boolean,
     selectedAction: Action,
+    appLabel: String? = null,
     onCheckedChange: (Boolean) -> Unit,
     onClick: () -> Unit
 ) {
@@ -232,8 +255,13 @@ fun TriggerItem(
                 color = TextSecondary
             )
             Spacer(modifier = Modifier.height(2.dp))
+            val actionDisplay = if (selectedAction == Action.OPEN_APP && !appLabel.isNullOrEmpty()) {
+                "Action: Open $appLabel"
+            } else {
+                "Action: ${selectedAction.displayName}"
+            }
             Text(
-                text = "Action: ${selectedAction.displayName}",
+                text = actionDisplay,
                 style = MaterialTheme.typography.labelLarge,
                 color = AuroraPrimary
             )
@@ -260,6 +288,23 @@ fun ActionSelectionScreen(viewModel: MainViewModel, navController: NavController
         TriggerMethod.MOVE_BACKWARD -> viewModel.moveBackwardAction.collectAsStateWithLifecycle()
         TriggerMethod.MOVE_RIGHT_PHONE -> viewModel.flipPhoneAction.collectAsStateWithLifecycle()
         TriggerMethod.BACK_PANEL -> viewModel.backPanelAction.collectAsStateWithLifecycle()
+    }
+
+    val selectedPkg by when (triggerMethod) {
+        TriggerMethod.MOVE_LEFT -> viewModel.moveLeftAppPackage.collectAsStateWithLifecycle()
+        TriggerMethod.MOVE_BACKWARD -> viewModel.moveBackwardAppPackage.collectAsStateWithLifecycle()
+        TriggerMethod.MOVE_RIGHT_PHONE -> viewModel.flipPhoneAppPackage.collectAsStateWithLifecycle()
+        TriggerMethod.BACK_PANEL -> viewModel.backPanelAppPackage.collectAsStateWithLifecycle()
+    }
+
+    val installedApps by viewModel.installedApps.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadInstalledApps(context)
+    }
+
+    val selectedAppName = remember(selectedPkg, installedApps) {
+        installedApps?.find { it.packageName == selectedPkg }?.name
     }
     
     Scaffold(
@@ -309,10 +354,17 @@ fun ActionSelectionScreen(viewModel: MainViewModel, navController: NavController
                         Action.NONE -> Icons.Rounded.Block
                     }
                     
+                    val description = if (action == Action.OPEN_APP && !selectedAppName.isNullOrEmpty()) {
+                        "Selected: $selectedAppName"
+                    } else {
+                        action.description
+                    }
+
                     ActionItem(
                         action = action,
                         icon = icon,
                         isSelected = selectedAction == action,
+                        descriptionOverride = description,
                         onClick = { 
                             clickWithVibration(context, viewModel) {
                                 when (triggerMethod) {
@@ -339,6 +391,7 @@ fun ActionItem(
     action: Action,
     icon: ImageVector,
     isSelected: Boolean,
+    descriptionOverride: String? = null,
     onClick: () -> Unit
 ) {
     val containerColor by animateColorAsState(
@@ -375,10 +428,11 @@ fun ActionItem(
                 style = MaterialTheme.typography.titleMedium,
                 color = TextPrimary
             )
-            if (action.description.isNotEmpty()) {
+            val description = descriptionOverride ?: action.description
+            if (description.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = action.description,
+                    text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
@@ -397,7 +451,20 @@ fun ActionItem(
 
 @Composable
 fun CompatibilityScreen(viewModel: MainViewModel, navController: NavController) {
-    val compatibility = viewModel.refreshCompatibility()
+    val context = LocalContext.current
+    var compatibility by remember { mutableStateOf(viewModel.refreshCompatibility()) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                compatibility = viewModel.refreshCompatibility()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     Scaffold(
         topBar = { SimpleTopBar("Device Compatibility", navController) },
         containerColor = DarkBackground
@@ -406,29 +473,115 @@ fun CompatibilityScreen(viewModel: MainViewModel, navController: NavController) 
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            InfoCard("Hardware Support", compatibility.hasHardware.toString())
-            InfoCard("Accelerometer", compatibility.hasAccelerometer.toString())
-            InfoCard("Accessibility Enabled", compatibility.isAccessibilityEnabled.toString())
+            CompatibilityItemCard(
+                icon = Icons.Rounded.Sensors,
+                title = "Accelerometer Sensor",
+                subtitle = "Detects physical motion, shakes, and orientation changes",
+                isAvailable = compatibility.hasAccelerometer,
+                actionText = if (compatibility.hasAccelerometer) "Ready" else "Missing",
+                onClick = {}
+            )
+
+            CompatibilityItemCard(
+                icon = Icons.Rounded.Vibration,
+                title = "Vibrator / Taptic Engine",
+                subtitle = "Provides haptic feedback upon successful gesture triggers",
+                isAvailable = compatibility.hasVibrator,
+                actionText = if (compatibility.hasVibrator) "Ready" else "Missing",
+                onClick = {}
+            )
+
+            CompatibilityItemCard(
+                icon = Icons.Rounded.Accessibility,
+                title = "Accessibility Service Permission",
+                subtitle = "Required to execute global actions like Home, Back & Recents",
+                isAvailable = compatibility.isAccessibilityEnabled,
+                actionText = if (compatibility.isAccessibilityEnabled) "Enabled" else "Enable",
+                onClick = {
+                    if (!compatibility.isAccessibilityEnabled) {
+                        clickWithVibration(context, viewModel) {
+                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                            context.startActivity(intent)
+                        }
+                    }
+                }
+            )
+
+            CompatibilityItemCard(
+                icon = Icons.Rounded.Settings,
+                title = "Modify System Settings",
+                subtitle = "Required to adjust screen brightness directly without opening Quick Settings",
+                isAvailable = compatibility.canWriteSettings,
+                actionText = if (compatibility.canWriteSettings) "Allowed" else "Allow",
+                onClick = {
+                    if (!compatibility.canWriteSettings) {
+                        clickWithVibration(context, viewModel) {
+                            val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).apply {
+                                data = Uri.parse("package:${context.packageName}")
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(intent)
+                        }
+                    }
+                }
+            )
         }
     }
 }
 
 @Composable
-fun InfoCard(title: String, value: String) {
+fun CompatibilityItemCard(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    isAvailable: Boolean,
+    actionText: String,
+    onClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(SurfaceVariantDark)
+            .clickable(enabled = actionText == "Enable") { onClick() }
             .padding(20.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(title, style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
-        Text(value.uppercase(), style = MaterialTheme.typography.labelMedium, color = if (value == "true") AuroraSecondary else ErrorRed)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            GlowingIconBox(
+                icon = icon,
+                isActive = isAvailable,
+                color = if (isAvailable) AuroraSecondary else ErrorRed,
+                boxSize = 44.dp,
+                iconSize = 22.dp,
+                cornerRadius = 12.dp
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(title, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+            }
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = if (isAvailable) AuroraSecondary.copy(alpha = 0.15f) else ErrorRed.copy(alpha = 0.15f)
+        ) {
+            Text(
+                text = actionText,
+                style = MaterialTheme.typography.labelMedium,
+                color = if (isAvailable) AuroraSecondary else ErrorRed,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+            )
+        }
     }
 }
 
@@ -438,6 +591,7 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
     val vibrateEnabled by viewModel.vibrateEnabled.collectAsStateWithLifecycle()
+    val hapticIntensity by viewModel.hapticIntensity.collectAsStateWithLifecycle()
     val materialYouEnabled by viewModel.materialYouEnabled.collectAsStateWithLifecycle()
     val accentTheme by viewModel.accentTheme.collectAsStateWithLifecycle()
     val sensorSensitivity by viewModel.sensorSensitivity.collectAsStateWithLifecycle()
@@ -484,34 +638,87 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
                     .background(SurfaceVariantDark)
+                    .clickable {
+                        clickWithVibration(context, viewModel) {
+                            navController.navigate("gesture_test")
+                        }
+                    }
                     .padding(20.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.ArrowBack, contentDescription = null, tint = AuroraSecondary)
+                    Icon(Icons.Rounded.Sensors, contentDescription = null, tint = AuroraSecondary)
                     Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text("Vibration Feedback", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text("Vibrate on successful double-tap", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-                    }
+                    Text("Gesture Calibration & Test", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
                 }
-                Switch(
-                    checked = vibrateEnabled,
-                    onCheckedChange = { checked ->
-                        clickWithVibration(context, viewModel) {
-                            viewModel.setVibrateEnabled(checked)
+                Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = TextSecondary)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(SurfaceVariantDark)
+                    .padding(20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.Vibration, contentDescription = null, tint = AuroraSecondary)
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text("Vibration Feedback", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("Vibrate on successful action", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
                         }
-                    },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = AuroraSecondary,
-                        uncheckedThumbColor = TextSecondary,
-                        uncheckedTrackColor = DarkSurface,
-                        uncheckedBorderColor = DividerColor
+                    }
+                    Switch(
+                        checked = vibrateEnabled,
+                        onCheckedChange = { checked ->
+                            clickWithVibration(context, viewModel) {
+                                viewModel.setVibrateEnabled(checked)
+                            }
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = AuroraSecondary,
+                            uncheckedThumbColor = TextSecondary,
+                            uncheckedTrackColor = DarkSurface,
+                            uncheckedBorderColor = DividerColor
+                        )
                     )
-                )
+                }
+
+                if (vibrateEnabled) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Haptic Intensity",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    androidx.compose.material3.Slider(
+                        value = hapticIntensity,
+                        onValueChange = { viewModel.setHapticIntensity(it) },
+                        onValueChangeFinished = { 
+                            // Provide sample feedback when user finishes sliding
+                            clickWithVibration(context, viewModel) {}
+                        },
+                        valueRange = 0f..1f,
+                        steps = 9,
+                        colors = androidx.compose.material3.SliderDefaults.colors(
+                            thumbColor = AuroraSecondary,
+                            activeTrackColor = AuroraSecondary,
+                            inactiveTrackColor = DividerColor
+                        )
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -716,50 +923,48 @@ fun SettingsScreen(viewModel: MainViewModel, navController: NavController) {
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                // Instagram
+                // Instagram & GitHub Logos Row
                 Row(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { openInstagramUrl(context, "https://www.instagram.com/rather_jahanzeb") }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_instagram),
-                        contentDescription = "Instagram",
-                        tint = AuroraSecondary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "https://www.instagram.com/rather_jahanzeb",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary
-                    )
-                }
-                
-                // GitHub
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { openBrowserUrl(context, "https://github.com/ratherjahanzeb") }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_github),
-                        contentDescription = "GitHub",
-                        tint = AuroraSecondary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "https://github.com/ratherjahanzeb",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary
-                    )
+                    // Instagram
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(SurfaceVariantDark)
+                            .clickable { openInstagramUrl(context, "https://www.instagram.com/rather_jahanzeb") },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_instagram),
+                            contentDescription = "Instagram",
+                            tint = AuroraSecondary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(20.dp))
+                    
+                    // GitHub
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(SurfaceVariantDark)
+                            .clickable { openBrowserUrl(context, "https://github.com/ratherjahanzeb") },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_github),
+                            contentDescription = "GitHub",
+                            tint = AuroraSecondary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
                 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -883,65 +1088,22 @@ fun UpiQrScreen(navController: NavController) {
     }
 }
 
-data class AppInfo(val name: String, val packageName: String, val icon: Bitmap?)
-
 @Composable
 fun AppSelectionScreen(viewModel: MainViewModel, navController: NavController, triggerMethod: TriggerMethod) {
     val context = LocalContext.current
-    var apps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
+    val installedApps by viewModel.installedApps.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadInstalledApps(context)
+    }
+
+    val apps = installedApps ?: emptyList()
+    val isLoading = installedApps == null
 
     val filteredApps = remember(apps, searchQuery) {
         if (searchQuery.isBlank()) apps
         else apps.filter { it.name.contains(searchQuery, ignoreCase = true) || it.packageName.contains(searchQuery, ignoreCase = true) }
-    }
-
-    val lifecycleOwner = LocalLifecycleOwner.current
-    var refreshTrigger by remember { mutableStateOf(0) }
-
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                refreshTrigger++
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
-    LaunchedEffect(refreshTrigger) {
-        if (apps.isEmpty()) {
-            isLoading = true
-        }
-        withContext(Dispatchers.IO) {
-            val pm = context.packageManager
-            val intent = Intent(Intent.ACTION_MAIN, null).apply {
-                addCategory(Intent.CATEGORY_LAUNCHER)
-            }
-            val resolveInfos = pm.queryIntentActivities(intent, 0)
-            val appList = resolveInfos.mapNotNull {
-                try {
-                    val drawable = it.loadIcon(pm)
-                    val bitmap = try {
-                        drawable.toBitmap(width = 144, height = 144, config = Bitmap.Config.ARGB_8888)
-                    } catch (e: Exception) { null }
-                    
-                    AppInfo(
-                        name = it.loadLabel(pm).toString(),
-                        packageName = it.activityInfo.packageName,
-                        icon = bitmap
-                    )
-                } catch (e: Exception) { null }
-            }.sortedBy { it.name.lowercase() }
-            
-            withContext(Dispatchers.Main) {
-                apps = appList
-                isLoading = false
-            }
-        }
     }
 
     Scaffold(
@@ -1031,3 +1193,138 @@ fun AppItem(app: AppInfo, onClick: () -> Unit) {
         }
     }
 }
+
+@Composable
+fun GestureTestScreen(viewModel: MainViewModel, navController: NavController) {
+    val context = LocalContext.current
+    val sensorSensitivity by viewModel.sensorSensitivity.collectAsStateWithLifecycle()
+    val triggerLogs by viewModel.triggerLogs.collectAsStateWithLifecycle()
+
+    var accelX by remember { mutableStateOf(0f) }
+    var accelY by remember { mutableStateOf(0f) }
+    var accelZ by remember { mutableStateOf(0f) }
+    var proximityValue by remember { mutableStateOf(-1f) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val sensorManager = context.getSystemService(android.content.Context.SENSOR_SERVICE) as android.hardware.SensorManager
+        val accelerometer = sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_ACCELEROMETER)
+        val proximity = sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_PROXIMITY)
+
+        val listener = object : android.hardware.SensorEventListener {
+            override fun onSensorChanged(event: android.hardware.SensorEvent?) {
+                if (event == null) return
+                if (event.sensor.type == android.hardware.Sensor.TYPE_ACCELEROMETER) {
+                    accelX = event.values[0]
+                    accelY = event.values[1]
+                    accelZ = event.values[2]
+                } else if (event.sensor.type == android.hardware.Sensor.TYPE_PROXIMITY) {
+                    proximityValue = event.values[0]
+                }
+            }
+            override fun onAccuracyChanged(sensor: android.hardware.Sensor?, accuracy: Int) {}
+        }
+
+        sensorManager.registerListener(listener, accelerometer, android.hardware.SensorManager.SENSOR_DELAY_UI)
+        sensorManager.registerListener(listener, proximity, android.hardware.SensorManager.SENSOR_DELAY_UI)
+
+        onDispose {
+            sensorManager.unregisterListener(listener)
+        }
+    }
+
+    Scaffold(
+        topBar = { SimpleTopBar("Gesture Calibration & Test", navController) },
+        containerColor = DarkBackground
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SectionHeader("LIVE SENSOR TELEMETRY")
+
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = SurfaceVariantDark)
+            ) {
+                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Accelerometer Values", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                    Text("X: %.2f m/s²".format(accelX), style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                    Text("Y: %.2f m/s²".format(accelY), style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                    Text("Z: %.2f m/s²".format(accelZ), style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Proximity Sensor", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                    Text("Distance: ${if (proximityValue >= 0) "$proximityValue cm" else "N/A"}", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                }
+            }
+
+            SectionHeader("SENSOR SENSITIVITY CALIBRATION")
+
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = SurfaceVariantDark)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text("Sensitivity Threshold", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Adjust how sensitive motion triggers are to your movements.", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Slider(
+                        value = sensorSensitivity,
+                        onValueChange = { viewModel.setSensorSensitivity(it) },
+                        valueRange = 0.1f..1f,
+                        steps = 9,
+                        colors = SliderDefaults.colors(
+                            thumbColor = AuroraSecondary,
+                            activeTrackColor = AuroraSecondary,
+                            inactiveTrackColor = DividerColor
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { clickWithVibration(context, viewModel) {} },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = AuroraSecondary)
+                    ) {
+                        Text("Test Haptic Vibration", color = Color.Black)
+                    }
+                }
+            }
+
+            SectionHeader("RECENT TRIGGER LOGS")
+
+            if (triggerLogs.isEmpty()) {
+                Text("No triggers recorded yet. Perform gestures to test!", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+            } else {
+                triggerLogs.forEach { log ->
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = SurfaceVariantDark),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(log.sourceTrigger, style = MaterialTheme.typography.titleSmall, color = TextPrimary)
+                                Text("Action: ${log.actionName}", style = MaterialTheme.typography.bodySmall, color = AuroraSecondary)
+                            }
+                            Text(
+                                text = android.text.format.DateFormat.format("hh:mm:ss a", log.timestamp).toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TextSecondary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+

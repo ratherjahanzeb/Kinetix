@@ -14,8 +14,10 @@ data class CompatibilityStatus(
     val hasFingerprintInputDevice: Boolean,
     val inputDeviceNames: List<String>,
     val isAccessibilityEnabled: Boolean,
+    val canWriteSettings: Boolean,
     val hasAccelerometer: Boolean,
-    val hasProximitySensor: Boolean
+    val hasProximitySensor: Boolean,
+    val hasVibrator: Boolean
 ) {
     val level: StatusLevel
         get() = when {
@@ -73,14 +75,21 @@ class CompatibilityChecker(private val context: Context) {
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val hasAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null
         val hasProximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY) != null
+        
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? android.os.Vibrator
+        val hasVibrator = vibrator?.hasVibrator() ?: true
+
+        val canWriteSettings = Settings.System.canWrite(context)
 
         return CompatibilityStatus(
             hasHardware = hasHardware,
             hasFingerprintInputDevice = hasFingerprintInputDevice,
             inputDeviceNames = inputDeviceNames,
             isAccessibilityEnabled = isAccessibilityEnabled,
+            canWriteSettings = canWriteSettings,
             hasAccelerometer = hasAccelerometer,
-            hasProximitySensor = hasProximitySensor
+            hasProximitySensor = hasProximitySensor,
+            hasVibrator = hasVibrator
         )
     }
 }

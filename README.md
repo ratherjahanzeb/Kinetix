@@ -14,19 +14,20 @@
 
 ## 📱 About **Kinetix**
 
-**Kinetix** is an open-source Android utility app that triggers configured system actions based on physical device movements and gestures (such as moving left, right, forward,backward,).
+**Kinetix** is an open-source Android utility app that triggers configured system actions and apps based on physical device movements and sensor gestures.
 
-Built with **Kotlin** and **Jetpack Compose**, Kinetix features Material Design 3 styling, theme customization, trigger logging, vibration feedback, and startup sound effects.
+Built with **Kotlin** and **Jetpack Compose**, Kinetix features Material Design 3 styling, theme customization, trigger logging, vibration feedback, Quick Settings tile integration, and gesture testing.
 
 ---
 
 ## ✨ Key Features
 
-*   **Configurable Triggers**: Set actions for Move Left, Move Backward, Move Forward and Move Left
-*   **Action Mapping**: Map gestures to system actions like Home, Flashlight, Screenshot, or launching any installed app.
-*   **Sensor Sensitivity Calibration**: Adjust sensitivity thresholds for precise gesture detection.
+*   **Configurable Triggers**: Support for multiple sensor triggers including Move Left, Move Backward, Flip Phone (Move Right), and Back Panel taps.
+*   **Action Mapping**: Map gestures to system actions (Home, Back, Recents, Notifications, Quick Settings, Screenshot, Flashlight, Brightness control) or launch any installed app.
+*   **Quick Settings Tile**: Instantly enable or disable gesture detection directly from your system notification shade.
+*   **Gesture Calibration & Test**: Live telemetry for accelerometer and proximity sensors, adjustable sensitivity sliders, and haptic feedback testing.
 *   **Trigger History Log**: Review recent successful gesture triggers with timestamps.
-*   **Custom Theming**: Choose between System, Light, Dark, or AMOLED themes along with accent color palettes.
+*   **Custom Theming**: Choose between System, Light, Dark, or AMOLED themes along with dynamic Material You or custom accent color palettes.
 
 ---
 
@@ -34,8 +35,8 @@ Built with **Kotlin** and **Jetpack Compose**, Kinetix features Material Design 
 
 *   **Language**: Kotlin
 *   **UI**: Jetpack Compose & Material 3
-*   **Persistence**: DataStore / Local State
-*   **Sensors**: Android Sensor Manager & Accessibility Services
+*   **Persistence**: Jetpack DataStore Preferences
+*   **Sensors & System**: Android Sensor Manager & Accessibility Services
 
 ---
 

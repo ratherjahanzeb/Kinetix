@@ -125,6 +125,8 @@ class DoubleTapAccessibilityService : AccessibilityService() {
             settingsRepo.sensorSensitivity.collect { sens ->
                 backTapDetector?.sensorSensitivity = sens
                 shakeDetector?.sensorSensitivity = sens
+                flipDetector?.sensorSensitivity = sens
+                proximityDetector?.sensorSensitivity = sens
             }
         }
     }
@@ -316,7 +318,7 @@ class DoubleTapAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun vibrate() {
+    private suspend fun vibrate() {
         try {
             val vibrator = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
                 val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager
@@ -325,11 +327,16 @@ class DoubleTapAccessibilityService : AccessibilityService() {
                 @Suppress("DEPRECATION")
                 getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator
             }
+            
+            val intensity = settingsRepo.hapticIntensity.first()
+            val duration = 15L + (70L * intensity).toLong()
+            val amplitude = if (intensity < 0.3f) 50 else if (intensity < 0.7f) 100 else 255
+
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                vibrator.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                vibrator.vibrate(android.os.VibrationEffect.createOneShot(duration, amplitude))
             } else {
                 @Suppress("DEPRECATION")
-                vibrator.vibrate(50)
+                vibrator.vibrate(duration)
             }
         } catch (e: Exception) {
             Log.e("DoubleTap", "Failed to vibrate", e)

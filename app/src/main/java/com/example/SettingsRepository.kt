@@ -47,6 +47,7 @@ class SettingsRepository(private val context: Context) {
         
         // Feedback
         val VIBRATE_ENABLED = booleanPreferencesKey("vibrate_enabled")
+        val HAPTIC_INTENSITY = floatPreferencesKey("haptic_intensity")
         val SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
         val TRIGGER_LOGS = stringPreferencesKey("trigger_logs")
         val MATERIAL_YOU_ENABLED = booleanPreferencesKey("material_you_enabled")
@@ -112,6 +113,7 @@ class SettingsRepository(private val context: Context) {
     val sensorSensitivity: Flow<Float> = context.dataStore.data.map { it[SENSOR_SENSITIVITY] ?: 0.5f }
     
     val vibrateEnabled: Flow<Boolean> = context.dataStore.data.map { it[VIBRATE_ENABLED] ?: true }
+    val hapticIntensity: Flow<Float> = context.dataStore.data.map { it[HAPTIC_INTENSITY] ?: 0.5f }
     val soundEnabled: Flow<Boolean> = context.dataStore.data.map { it[SOUND_ENABLED] ?: false }
     val materialYouEnabled: Flow<Boolean> = context.dataStore.data.map { it[MATERIAL_YOU_ENABLED] ?: false }
     val accentTheme: Flow<String> = context.dataStore.data.map { it[ACCENT_THEME] ?: "AURORA" }
@@ -133,7 +135,7 @@ class SettingsRepository(private val context: Context) {
                     )
                 )
             }
-            list.take(10)
+            list.take(50)
         } catch (e: Exception) {
             emptyList()
         }
@@ -164,6 +166,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setBackPanelTimeoutMs(timeout: Int) { context.dataStore.edit { it[BACK_PANEL_TIMEOUT_MS] = timeout } }
     suspend fun setSensorSensitivity(sensitivity: Float) { context.dataStore.edit { it[SENSOR_SENSITIVITY] = sensitivity } }
     suspend fun setVibrateEnabled(enabled: Boolean) { context.dataStore.edit { it[VIBRATE_ENABLED] = enabled } }
+    suspend fun setHapticIntensity(intensity: Float) { context.dataStore.edit { it[HAPTIC_INTENSITY] = intensity } }
     suspend fun setSoundEnabled(enabled: Boolean) { context.dataStore.edit { it[SOUND_ENABLED] = enabled } }
     suspend fun setMaterialYouEnabled(enabled: Boolean) { context.dataStore.edit { it[MATERIAL_YOU_ENABLED] = enabled } }
     suspend fun setAccentTheme(theme: String) { context.dataStore.edit { it[ACCENT_THEME] = theme } }
@@ -184,7 +187,7 @@ class SettingsRepository(private val context: Context) {
             val newArray = org.json.JSONArray()
             newArray.put(newObj)
             for (i in 0 until array.length()) {
-                if (newArray.length() < 10) {
+                if (newArray.length() < 50) {
                     newArray.put(array.getJSONObject(i))
                 }
             }

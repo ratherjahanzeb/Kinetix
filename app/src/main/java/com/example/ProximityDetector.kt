@@ -19,6 +19,8 @@ class ProximityDetector(
     private var accelerationStartTime = 0L
     private var isAccelerating = false
     
+    var sensorSensitivity: Float = 0.5f
+    
     private var gravity = FloatArray(3)
     private val alpha = 0.8f
 
@@ -50,7 +52,7 @@ class ProximityDetector(
         val y = event.values[1] - gravity[1]
         val z = event.values[2] - gravity[2]
         
-        val threshold = 4.0f
+        val threshold = 4.0f * (1.5f - sensorSensitivity.coerceIn(0.1f, 1.0f))
         val isMovingBackward = z > threshold || y < -threshold
         
         val now = System.currentTimeMillis()

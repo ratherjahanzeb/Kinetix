@@ -12,6 +12,8 @@ import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -345,7 +347,7 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                         .padding(20.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.Tune, contentDescription = null, tint = AuroraSecondary, modifier = Modifier.size(24.dp))
+                        GlowingIconBox(icon = Icons.Rounded.Tune, isActive = true, color = AuroraSecondary, boxSize = 40.dp, iconSize = 20.dp, cornerRadius = 10.dp)
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text("Sensor Sensitivity Calibration", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
@@ -392,16 +394,16 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            GlowingIconBox(icon = Icons.Rounded.History, isActive = false, boxSize = 40.dp, iconSize = 20.dp, cornerRadius = 10.dp)
+                            GlowingIconBox(icon = Icons.Rounded.History, isActive = true, color = AuroraSecondary, boxSize = 40.dp, iconSize = 20.dp, cornerRadius = 10.dp)
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = "Recent Trigger History",
+                                    text = "Trigger History & Analytics",
                                     style = MaterialTheme.typography.titleLarge,
                                     color = TextPrimary
                                 )
                                 Text(
-                                    text = "Last successful gestures",
+                                    text = "Stats and last successful gestures",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = TextSecondary
                                 )
@@ -419,17 +421,55 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No triggers recorded yet.\nTry testing a double-tap!",
+                                text = "No triggers recorded yet.\nTry testing a gesture!",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = TextSecondary,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
                         }
                     } else {
+                        val stats = triggerLogs.groupingBy { it.sourceTrigger }.eachCount()
+                        
+                        // Analytics Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            stats.forEach { (trigger, count) ->
+                                val displayName = when (trigger) {
+                                    "MOVE_LEFT" -> "Left"
+                                    "MOVE_BACKWARD" -> "Backward"
+                                    "MOVE_RIGHT_PHONE" -> "Right"
+                                    "BACK_PANEL" -> "Forward"
+                                    else -> trigger
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = AuroraSecondary.copy(alpha = 0.15f)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Text(displayName, style = MaterialTheme.typography.labelMedium, color = AuroraSecondary)
+                                        Box(
+                                            modifier = Modifier.clip(androidx.compose.foundation.shape.CircleShape).background(AuroraSecondary).padding(horizontal = 6.dp, vertical = 2.dp)
+                                        ) {
+                                            Text(count.toString(), style = MaterialTheme.typography.labelSmall, color = DarkBackground)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
                         Column(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            triggerLogs.forEach { log ->
+                            // Show only the 5 most recent in the list
+                            triggerLogs.take(5).forEach { log ->
                                 val dateStr = android.text.format.DateFormat.format("hh:mm:ss a, MMM dd", java.util.Date(log.timestamp)).toString()
                                 val triggerDisplayName = when (log.sourceTrigger) {
                                     "MOVE_LEFT" -> "Move Left"
