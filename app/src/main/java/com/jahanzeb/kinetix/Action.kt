@@ -1,0 +1,27 @@
+package com.jahanzeb.kinetix
+
+enum class Action(val displayName: String, val description: String) {
+    NONE("None", ""),
+    HOME("Go Home", "Go to home screen"),
+    RECENTS("Recent Apps", "Open recent apps"),
+    NOTIFICATIONS("Notifications", "Open notification shade"),
+    QUICK_SETTINGS("Quick Settings", "Open quick settings panel"),
+    SCREENSHOT("Take Screenshot", "Capture current screen"),
+    FLASHLIGHT("Toggle Flashlight", "Turn flashlight on/off"),
+    LOCK_SCREEN("Lock Screen", "Lock the device"),
+    SPLIT_SCREEN("Split Screen", "Toggle split screen multi-window"),
+    POWER_DIALOG("Power Dialog", "Open power off / restart menu"),
+    VOLUME_UP("Volume Up", "Increase media volume"),
+    VOLUME_DOWN("Volume Down", "Decrease media volume"),
+    MEDIA_PLAY_PAUSE("Play/Pause Media", "Toggle media playback"),
+    BACK("Back", "Simulate system back button"),
+    NEXT_TRACK("Next Track", "Skip to next media track"),
+    PREV_TRACK("Previous Track", "Go to previous media track"),
+    MUTE_AUDIO("Mute Audio", "Mute audio stream"),
+    RINGER_SILENT("Ringer Mode Silent", "Set ringer mode to silent"),
+    RINGER_NORMAL("Ringer Mode Normal", "Set ringer mode to normal"),
+    RINGER_VIBRATE("Ringer Mode Vibrate", "Set ringer mode to vibrate"),
+    BRIGHTNESS_DOWN("Brightness Down", "Decrease screen brightness"),
+    BRIGHTNESS_UP("Brightness Up", "Increase screen brightness"),
+    OPEN_APP("Open App", "Launch an installed application"),
+}
